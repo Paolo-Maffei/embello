@@ -75,6 +75,8 @@ int main (int argc, const char** argv) {
                     rf.send(0xC0, (const uint8_t*) &reply + 2, len2);
                 }
             }
+        } else {
+            int a = waitForInterrupt (4, -1) ;  // RasPi GPIO23
         }
 
         chThdYield();
