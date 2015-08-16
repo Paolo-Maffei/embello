@@ -32,6 +32,12 @@ public:
     MyFileAccess () : FileAccess (filePath) {}
 };
 
+static volatile int interruptCounter = 0 ;
+void Interrupt (void)
+{
+  ++interruptCounter ;
+}
+
 int main (int argc, const char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
@@ -46,7 +52,17 @@ int main (int argc, const char** argv) {
         printf("Can't open the SPI bus: %d\n", errno);
         return 1;
     }
+    if (wiringPiISR (4, INT_EDGE_RISING, &Interrupt) < 0) {
+        fprintf (stderr, "Unable to setup ISR: %s\n", strerror (errno)) ;
+        return 1 ;
+    } // A lazy way to setup the GPIO pin, we don't use the ISR yet
 
+    if (piHiPri(22)) {    // Request "real time" priority
+                          // Running at 99 doesn't work well.
+        printf("Can't change priority: %d\n", errno); 
+        return 1;    
+    }
+    
     rf.init(RF_ID, RF_GROUP, RF_FREQ);
     //rf.encrypt("mysecret");
     rf.txPower(15); // 0 = min .. 31 = max
@@ -76,7 +92,7 @@ int main (int argc, const char** argv) {
                 }
             }
         } else {
-            int a = waitForInterrupt (4, -1) ;  // RasPi GPIO23
+            int a = waitForInterrupt (4, 60000) ;  // RasPi GPIO23
         }
 
         chThdYield();
