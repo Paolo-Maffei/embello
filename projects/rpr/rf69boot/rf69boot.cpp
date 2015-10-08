@@ -57,7 +57,7 @@ int main (int argc, const char** argv) {
         return 1 ;
     } // A lazy way to setup the GPIO pin, we don't use the ISR yet
 
-    if (piHiPri(22)) {    // Request "real time" priority
+    if (piHiPri(1)) {    // Request "real time" priority
                           // Running at 99 doesn't work well.
         printf("Can't change priority: %d\n", errno); 
         return 1;    
@@ -92,7 +92,9 @@ int main (int argc, const char** argv) {
                 }
             }
         } else {
+            printf("\nwaiting\n");
             int a = waitForInterrupt (4, 60000) ;  // RasPi GPIO23
+            printf("a = %d \n", a);
         }
 
         chThdYield();
