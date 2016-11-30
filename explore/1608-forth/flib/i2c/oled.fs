@@ -26,6 +26,7 @@
   $00 lcd!c  \ SETLOWCOLUMN
   $10 lcd!c  \ SETHIGHCOLUMN
   $40 lcd!c  \ SETSTARTLINE
+  $B0 lcd!c  \ SETPAGESTART
 
   lcdmem  16 0 do  \ send as a number of 64-byte data messages
     $3C i2c-addr $40 >i2c 

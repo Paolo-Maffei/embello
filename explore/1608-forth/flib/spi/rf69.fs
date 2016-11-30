@@ -21,6 +21,7 @@
 
 0 2 lshift constant RF:M_SLEEP
 1 2 lshift constant RF:M_STDBY
+2 2 lshift constant RF:M_FS
 3 2 lshift constant RF:M_TX
 4 2 lshift constant RF:M_RX
 
@@ -30,6 +31,8 @@
 
      7 bit constant RF:IRQ1_MRDY
      6 bit constant RF:IRQ1_RXRDY
+     3 bit constant RF:IRQ1_RSSI
+     2 bit constant RF:IRQ1_TIMEOUT
      0 bit constant RF:IRQ1_SMATCH
 
      6 bit constant RF:IRQ2_FIFO_NE
@@ -48,11 +51,38 @@
   42 variable rf69.group
 8686 variable rf69.freq
 
+\ jcw version
+\ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
+\ hex
+\   0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
+\   1E0C h, 2607 h, 29A0 h, 2B40 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
+\   3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
+\ decimal align
+
+\ tve version copied from Go driver
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
-  0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
-  1E0C h, 2607 h, 29A0 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
+  0100 h, \ opmode: sleep
+  0200 h, \ packet mode, fsk
+  0302 h, 048A h, \ bit rate 49,261 hz
+  0502 h, 06E1 h, \ 45Khz Fdev
+  0B20 h, \ low M
+  194A h, 1A42 h, \ RxBw 100khz, AFCBw 125khz
+  1E0C h, \ AFC auto-clear, auto-on
+  2607 h, \ disable clkout
+  29A0 h, \ RSSI thres -80dB
+  2B40 h, \ RSSI timeout after 128 bytes
+  2D05 h, \ Preamble 5 bytes
+  2E88 h, \ sync size 2 bytes
+  2F2D h, \ sync1: 0x2D
+  302A h, \ sync2: network group
+  37D8 h, \ deliver even if CRC fails
+  3842 h, \ max 62 byte payload
+  3C8F h, \ fifo thres
+  3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
+  6F20 h, \ Test DAGC
+  7102 h, \ RegTestAfc
+  0 h,  \ sentinel
 decimal align
 
 \ r/w access to the RF registers
@@ -91,12 +121,32 @@ decimal align
   rf:init rf-config!
   rf-freq rf-group ;
 
+\ rf-rssi checks whether the rssi bit is set in IRQ1 reg and sets the LED to match.
+\ It also checks whether there is an rssi timeout and restarts the receiver if so.
+: rf-rssi ( -- )
+  \ RF:IRQ1 rf@ h.2 cr
+  RF:IRQ1 rf@
+  dup RF:IRQ1_RSSI and 3 rshift 1 swap - LED io!
+  dup RF:IRQ1_TIMEOUT and if
+      RF:M_FS rf!mode
+      \ ." T"
+    then
+  drop \ h.2 bl
+  ;
+
+\ rf-status fetches the IRQ1 reg, checks whether rx_ready is set and was not set
+\ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
+\ rf.last ensures that the info is grabbed only once per packet.
 : rf-status ( -- )  \ update status values on RXRDY
   RF:IRQ1 rf@  RF:IRQ1_RXRDY and  rf.last @ <> if
     rf.last  RF:IRQ1_RXRDY over xor!  @ if
       RF:RSSI rf@  rf.rssi !
       RF:LNA rf@  3 rshift  7 and  rf.lna !
       RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
+      \ ." *"
+      \ rf.rssi @ h.2
+    \ else
+      \ ." -"
     then
   then ;
 
@@ -110,7 +160,7 @@ decimal align
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
     RF:M_RX rf!mode
-  else rf-status then
+  else rf-rssi rf-status then
   RF:IRQ2 rf@  RF:IRQ2_RECVD and if
     RF:FIFO rf@
     rf.buf over 66 max rf-n@spi
@@ -139,6 +189,8 @@ decimal align
 
 : rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf69-init cr
+  0 rf.last !
+  RF:M_FS rf!mode
   begin
     rf-recv ?dup if
       ." RF69 " rf69-info
