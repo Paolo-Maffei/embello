@@ -46,7 +46,7 @@
 : var-init ( addr cnt -- )
   over + var.end ! var.ptr ! ;
 
-: var> ( -- 0 | n 1 )
+: var> ( -- 0 | n 1 ) \ extract an unsigned number from the var buffer
   0
   var.ptr @ var.end @ u< if 
     begin
@@ -54,6 +54,9 @@
     $80 and until
     $80 - 1
   then ;
+
+: var-s> ( -- 0 | n 1 ) \ extract signed number from the var buffer
+  var> swap dup 1 and negate xor shr swap ;
 
 : var. ( addr cnt -- )  \ decode and display all the varints
   var-init begin var> while . repeat ;
