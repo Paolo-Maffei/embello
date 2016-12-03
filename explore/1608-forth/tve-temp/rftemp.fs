@@ -7,14 +7,26 @@
 
 \ include ../flib/spi/rf69.fs
 include ../tlib/oled.fs
+include ../tlib/numprint.fs
 
-: show-oled ( temp -- temp )
-  dup shownum2.2 
-  100 ms
-  5 pick shownum1.3
+: show-readings ( vprev vcc tint lux humi pres temp -- ) \ print readings on console
+  hwid hex. ." = "
+  dup .centi ." °C, "
+  1 pick . ." Pa, "
+  2 pick .centi ." %RH, "
+  3 pick . ." lux, "
+  4 pick . ." °C, "
+  5 pick .milli ." => "
+  6 pick .milli ." V "
   ;
 
-: roll
+: show-oled ( temp -- temp ) \ show the temperature on the OLED and return it again
+  dup shownum2.2 
+  \ 100 ms
+  \ 5 pick shownum1.3
+  ;
+
+: roll \ little test snippet that rolls through numbers on the OLED at full speed
   1234
   begin
     dup shownum2.2
@@ -22,7 +34,7 @@ include ../tlib/oled.fs
   key? until ;
 
 : send-packet ( vprev vcc tint lux humi pres temp -- )
-  2 <pkt  hwid u+>  u14+> 6 0 do u+> loop  pkt>rf ;
+  2 <pkt  hwid u+>  n+> 6 0 do u+> loop  pkt>rf ;
 
 : low-power-sleep
   rf-sleep
@@ -32,13 +44,18 @@ include ../tlib/oled.fs
 
 : init-hw
   2.1MHz  1000 systick-hz  +lptim +i2c +adc
+  ." a"
 
   915750 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power
+  ." b"
 
   bme-init drop bme-calib
+  ." c"
   tsl-init drop
-  lcd-init show-logo
+  ." a"
+  lcd-init ." b" show-logo
+  ." c"
 
   adc-vcc                      ( vprev )
   ;
@@ -48,7 +65,9 @@ include ../tlib/oled.fs
   tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
 
   led-on
+  ." A"
   show-oled
+  ." X"
   show-readings cr 1 ms
   send-packet
   1 ms
@@ -65,7 +84,9 @@ include ../tlib/oled.fs
   ;
 
 : main
+  ." ... starting rftemp..." cr
   init-hw
+  ." ..." cr
   begin
     \ low-power-sleep
 

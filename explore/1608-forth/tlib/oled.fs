@@ -1,16 +1,5 @@
 \ oled utilities
 
-: show-readings ( vprev vcc tint lux humi pres temp -- )
-  hwid hex. ." = "
-  dup . ." °cC, "
-  1 pick . ." Pa, "
-  2 pick . ." %cRH, "
-  3 pick . ." lux, "
-  4 pick . ." °C, "
-  5 pick . ." => "
-  6 pick . ." mV "
-  ;
-
 : showdigit ( n x -- )
   swap 256 * digits + 64 0 do
     32 0 do
@@ -27,7 +16,9 @@
 : shownum2.2 ( u -- )
   clear
   10 /mod 10 /mod 10 /mod
+  ." B"
   -4 showdigit 28 showdigit 60 showdot 64 showdigit 96 showdigit
+  ." C"
   display ;
 
 : shownum1.3 ( u -- )
