@@ -4,35 +4,62 @@
 \ displays packet on oled
 
 \ include ../flib/spi/rf69.fs
-include ../tlib/oled.fs
-include ../tlib/numprint.fs
-include ../flib/any/varint.fs
+\ include ../tlib/oled.fs
+\ include ../tlib/numprint.fs
+\ include ../flib/any/varint.fs
 
-: fault-anykey ( -- ) unhandled key drop ;
+: fault-anykey ( -- ) unhandled ." continue?" key drop ;
+' fault-anykey irq-fault !
+' fault-anykey irq-collection !
 
 : led-on LED ioc! ;
 : led-off LED ios! ;
 
+: h>n ( u n -- ) \ convert hex to n digit string
+  base @ hex -rot ( base u n )
+  0 swap ( base u 0 n )
+  <# 0 do # loop #> ( base c-addr len )
+  rot base !
+  ;
+
 lcd-init show-logo
 10 ms
 
-: readings>uart ( vprev vcc tint lux humi pres temp -- ) \ print readings on console
+\ print a string to graphics
+: >gr ( addr u -- )
+  0 ?do
+    dup c@ ascii>bitpattern drawcharacterbitmap 1+
+  loop  drop ;
+
+: readings>uart ( buf-addr buf-len -- ) \ print readings on console
   var-init
-  var> if . then
-  var> if hex. then
-  var-s> if .centi ." °C, " then
-  var> if . ." Pa, " then
-  var> if .centi ." %RH, " then
-  var> if . ." lux, " then
-  var> if . ." °C, " then
-  var> if .milli ." => " then
+  var> if ." #" . then
+  var> if hex. ." :  " then
+  var-s> if .centi ." °C " then
+  var> if 0 u.n ." Pa " then
+  var> if .centi ." %RH " then
+  var> if . ." lux " then
+  var> if . ." °C " then
+  var> if .milli ." =>" then
   var> if .milli ." V " then
   ;
 
-: readings>oled ( temp -- temp ) \ show the temperature on the OLED and return it again
-  clear
+: readings>oled ( buf-addr buf-len -- ) \ show readings on oled
   var-init
-  var>
+  64 font-x ! 8 font-y !
+  \ pkt format, source node
+  var> if drop then \ s" #" >gr >n >gr then
+  var> if s"  " >gr 8 h>n >gr then
+  \ temp, %rh
+  0 font-x ! 40 font-y !
+  var-s> if >centi >gr s" C " >gr then
+  var> if drop then \ 0 u.n ." Pa " then
+  var> if >centi >gr s" %" >gr then
+  0 font-x ! 50 font-y !
+  var> if >n >gr s" lux " >gr then 
+  var> if drop then \ . ." °C " then
+  var> if drop then \ .milli ." =>" then
+  var> if >milli >gr s" V" >gr then
   ;
 
 915750 rf69.freq ! 6 rf69.group ! \ 62 rf69.nodeid !
@@ -58,30 +85,26 @@ rf69-init 16 rf-power
   16 lshift 16 arshift 61 * \ 16-bit to 32-bit sign-extension
   ;
 
-: rf69-info ( -- )  \ display reception parameters as hex string
+: rf69>uart ( len -- len )  \ print reception parameters
   rf69.freq @ .milli ." khz "
-  rf69.group @ .n ." g "
+  ." g" rf69.group @ .
   rf.rssi @ rf69.rssi-db 0 1 f.n.m ." dBm "
   rf.lna @ rf69.lna-db .n ." dB "
   rf.afc @ rf69.fdev-hz 0 swap 5 0 f.n.m ." Hz "
-  dup .n ." bytes"
+  dup .n ." b "
   ;
 
-\ print a string to graphics
-: string>gr ( addr u -- )
-  0 ?do
-    dup c@ ascii>bitpattern drawcharacterbitmap 1+
-  loop  drop ;
-
-: rf69>oled ( -- )  \ display reception parameters on oled
+: rf69>oled ( len -- len )  \ display reception parameters on oled
   0 font-x ! 8 font-y !
-  \ rf69.freq @ >milli string>gr s" khz " string>gr
-  rf69.group @ >n string>gr s" g " string>gr
-  rf.rssi @ rf69.rssi-db 0 1 f>n.m string>gr s" dBm " string>gr
-  rf.lna @ rf69.lna-db >n string>gr s" dB " string>gr
-  \ 0 font-x ! 18 font-y !
-  \ rf.afc @ rf69.fdev-hz 5 0 s>n string>gr s" Hz " string>gr
-  .v
+  \ group : source node -> dest node, length
+  rf69.group @ >n >gr s" :" >gr
+  rf.buf 1+ c@ $3F and >n >gr s" >" >gr
+  rf.buf c@ $3F and >n >gr
+  s"  L" >gr dup >n >gr
+  \ dBm, fDev
+  0 font-x ! 18 font-y !
+  rf.rssi @ rf69.rssi-db 5 1 f>n.m >gr s" dBm " >gr
+  rf.afc @ rf69.fdev-hz 0 swap 5 0 f>n.m >gr s" Hz " >gr
   ;
 
 : rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
@@ -90,49 +113,15 @@ rf69-init 16 rf-power
   RF:M_FS rf!mode
   begin
     rf-recv ?dup if
-      ." RF69 " rf69-info
-      dup 0 do
-        rf.buf i + c@ h.2
-        i 1 = if 2- h.2 space then
-      loop  cr
-    then
-  key? until ;
-
-: rf69-listenv ( -- )  \ init RFM69 and report incoming packets until key press
-  rf69-init cr
-  0 rf.last !
-  RF:M_FS rf!mode
-  begin
-    rf-recv ?dup if
-      ." RF69 " rf69-info
+      ." RF69 " rf69>uart
       clear rf69>oled display
       ( len ) dup 0 do
         rf.buf i + c@ h.2
         i 1 = if dup 2- h.2 space then
       loop  cr
       ( len ) 5 spaces rf.buf 2+ swap 2-
-      readings>uart cr
-      \ show-readings-oled
-    then
-  key? until ;
-
-: l ( -- )  \ init RFM69 and report incoming packets until key press
-  rf69-init cr
-  0 rf.last !
-  RF:M_FS rf!mode
-  begin
-    rf-recv ?dup if
-      ." RF69 " rf69-info
-      clear rf69>oled display
-\      ( len ) dup 0 do
-\        rf.buf i + c@ h.2
-\        i 1 = if dup 2- h.2 space then
-\      loop  cr
-\      drop
-      .v
-      \ ( len ) 5 spaces rf.buf 2+ swap 2-
-      \ readings>uart cr
-      \ show-readings-oled
+      2dup readings>uart cr
+      readings>oled display
     then
   key? until ;
 

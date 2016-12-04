@@ -90,17 +90,24 @@ $40005400 constant I2C1
 \   tx=0 rx=0 : START - STOP          (used for presence detection)
 
 : i2c-xfer ( u -- nak )
+  PA0 ios! 50 us PA1 ios! 100 us PA1 ioc! 50 us PA0 ioc! 100 us
+  PA0 ios!
   0 bit I2C1-CR1 bic!  0 bit I2C1-CR1 bis!  \ toggle PE low to reset
+  PA1 ios!
   i2c.ptr @ i2c.buf - ?dup if
     i2c-setn  0 i2c-start  i2c-wr  \ tx>0
   else
     dup 0= if 0 i2c-start then  \ tx=0 rx=0
   then
+  PA1 ioc!
   ?dup if
     i2c-setn  1 i2c-start  i2c-rd  \ rx>0
   then
+  PA1 ios!
   i2c-stop i2c-reset
+  PA1 ioc!
   4 bit I2C1-ISR bit@ 0<>  \ NAKF
+  PA0 ioc!
 ;
 
 : i2c. ( -- )  \ scan and report all I2C devices on the bus

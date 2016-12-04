@@ -32,7 +32,8 @@
     $3C i2c-addr $40 >i2c 
     64 0 do  dup c@ >i2c  1+ loop
     0 i2c-xfer drop
-  loop drop ;
+  loop drop
+  ;
 
 create logo  \ 64x64 pixels
 binary

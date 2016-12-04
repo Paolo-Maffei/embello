@@ -6,7 +6,8 @@
       i $1F xor bit over bit@ if over i + j putpixel then
     loop
     4 +
-  loop 2drop ;
+  loop 2drop
+  ;
 
 : showdot ( x -- )
   64 60 do
@@ -19,11 +20,13 @@
   ." B"
   -4 showdigit 28 showdigit 60 showdot 64 showdigit 96 showdigit
   ." C"
-  display ;
+  display
+  ;
 
 : shownum1.3 ( u -- )
   clear
   10 /mod 10 /mod 10 /mod
   -4 showdigit 28 showdot 32 showdigit 64 showdigit 96 showdigit
-  display ;
+  display
+  ;
 

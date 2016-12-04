@@ -46,6 +46,12 @@ include ../tlib/numprint.fs
   2.1MHz  1000 systick-hz  +lptim +i2c +adc
   ." a"
 
+  OMODE-PP PA0 io-mode!
+  OMODE-PP PA1 io-mode!
+  PA1 ioc! 1 ms
+  PA1 ios! 1 ms
+  PA1 ioc!
+
   915750 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power
   ." b"
@@ -53,9 +59,9 @@ include ../tlib/numprint.fs
   bme-init drop bme-calib
   ." c"
   tsl-init drop
-  ." a"
-  lcd-init ." b" show-logo
-  ." c"
+  ." d"
+  lcd-init ." e" show-logo
+  ." f"
 
   adc-vcc                      ( vprev )
   ;
@@ -64,14 +70,12 @@ include ../tlib/numprint.fs
   adc-vcc adc-temp             ( vprev vcc tint )
   tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
 
-  led-on
   ." A"
   show-oled
   ." X"
   show-readings cr 1 ms
   send-packet
   1 ms
-  led-off 
 
   adc-vcc
 
