@@ -2,8 +2,9 @@
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 \ assumes OLED on i2c
 
-0 constant debug  \ 0 = send RF packets, 1 = display on serial port
+1 constant debug  \ 0 = send RF packets, 1 = display on serial port
 1 constant rate  \ seconds between readings
+0 constant OLED   \ whether OLED is present
 
 \ include ../flib/spi/rf69.fs
 include ../tlib/oled.fs
@@ -63,7 +64,7 @@ include ../tlib/numprint.fs
 
   bme-init drop bme-calib
   tsl-init drop
-  lcd-init show-logo
+  OLED [if] lcd-init show-logo [then]
 
   adc-vcc                      ( vprev )
   ;
@@ -72,7 +73,8 @@ include ../tlib/numprint.fs
   adc-vcc adc-temp             ( vprev vcc tint )
   tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
 
-  show-oled
+  OLED [if] show-oled [then]
+
   show-readings cr 1 ms
   send-packet
   1 ms
