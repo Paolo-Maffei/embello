@@ -31,15 +31,23 @@ lcd-init show-logo
     dup c@ ascii>bitpattern drawcharacterbitmap 1+
   loop  drop ;
 
+: c>f ( n -- n ) \ convert celsius to farenheit
+  9 * 5 / 32 +
+  ;
+
+: cC>F ( n -- c-addr len ) \ convert hundredths of degrees celsius to farenheit
+  0 swap 0,018 f* 0 32 d+ 
+  ;
+
 : readings>uart ( buf-addr buf-len -- ) \ print readings on console
   var-init
   var> if ." #" . then
   var> if hex. ." :  " then
-  var-s> if .centi ." °C " then
+  var-s> if cC>F 4 1 f.n.m ." °F " then
   var> if 0 u.n ." Pa " then
   var> if .centi ." %RH " then
   var> if . ." lux " then
-  var> if . ." °C " then
+  var> if c>f .n ." °F " then
   var> if .milli ." =>" then
   var> if .milli ." V " then
   ;
@@ -52,7 +60,7 @@ lcd-init show-logo
   var> if s"  " >gr 8 h>n >gr then
   \ temp, %rh
   0 font-x ! 40 font-y !
-  var-s> if >centi >gr s" C " >gr then
+  var-s> if cC>F 4 1 f>n.m >gr s" F " >gr then
   var> if drop then \ 0 u.n ." Pa " then
   var> if >centi >gr s" %" >gr then
   0 font-x ! 50 font-y !

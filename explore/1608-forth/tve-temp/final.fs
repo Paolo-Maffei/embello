@@ -1,6 +1,6 @@
 \ burn the final application in flash for self-contained use
 
-<<<tvebase>>>
+<<<core>>>
 compiletoflash
 ( main start: ) here dup hex.
 

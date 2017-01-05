@@ -4,7 +4,7 @@
 [ifndef] OLED.LARGE  1 constant OLED.LARGE  [then]  \ 0 = 128x32, 1 = 128x64
 
 : lcd!c ( v -- )  \ send a command to the lcd
-  $3C i2c-addr  $00 >i2c >i2c  0 i2c-xfer drop ;
+  $3C i2c-addr  $80 >i2c >i2c  0 i2c-xfer drop ;
 
 \ the oled's display memory buffer is set up as 4 or 8 rows of 128 bytes
 \ each byte is 8 pixels down, from b0 at the top to b7 at the bottom
@@ -26,7 +26,6 @@
   $00 lcd!c  \ SETLOWCOLUMN
   $10 lcd!c  \ SETHIGHCOLUMN
   $40 lcd!c  \ SETSTARTLINE
-  $B0 lcd!c  \ SETPAGESTART
 
   lcdmem  16 0 do  \ send as a number of 64-byte data messages
     $3C i2c-addr $40 >i2c 
@@ -118,17 +117,17 @@ decimal
 : lcd-init ( -- )  \ initialise the oled display
   +i2c
   $AE lcd!c  \ DISPLAYOFF
-  $D5 lcd!c  \ SETDISPLAYCLOCKDIV
-  $80 lcd!c
   $A8 lcd!c  \ SETMULTIPLEX
    63 lcd!c
   $D3 lcd!c  \ SETDISPLAYOFFSET
     0 lcd!c
+
   $40 lcd!c  \ SETSTARTLINE
-  $8D lcd!c  \ CHARGEPUMP
-  $14 lcd!c  \ switched capacitor
   $20 lcd!c  \ MEMORYMODE
   $00 lcd!c
+  $21 lcd!c  \ SET COL ADDR
+    0 lcd!c  \ COL START
+  127 lcd!c  \ COL END
   $A1 lcd!c  \ SEGREMAP | 0x1
   $C8 lcd!c  \ COMSCANDEC
   $DA lcd!c  \ SETCOMPINS
@@ -139,6 +138,13 @@ decimal
   $F1 lcd!c
   $DB lcd!c  \ SETVCOMDETECT
   $40 lcd!c
+
+  $2E lcd!c  \ STOP SCROLL
+
+  $D5 lcd!c  \ SETDISPLAYCLOCKDIV
+  $80 lcd!c
+  $8D lcd!c  \ CHARGEPUMP
+  $14 lcd!c  \ switched capacitor
   $A4 lcd!c  \ DISPLAYALLON_RESUME
   $A6 lcd!c  \ NORMALDISPLAY
   $AF lcd!c  \ DISPLAYON

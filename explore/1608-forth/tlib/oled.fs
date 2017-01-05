@@ -14,12 +14,17 @@
     dup 4 + over 1+ do i j putpixel loop
   loop drop ;
 
+: shownum3.1 ( u -- )
+  clear
+  10 /mod 10 /mod 10 /mod
+  -4 showdigit 28 showdigit 60 showdigit 92 showdot 96 showdigit
+  display
+  ;
+
 : shownum2.2 ( u -- )
   clear
   10 /mod 10 /mod 10 /mod
-  ." B"
   -4 showdigit 28 showdigit 60 showdot 64 showdigit 96 showdigit
-  ." C"
   display
   ;
 
