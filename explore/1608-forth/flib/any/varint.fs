@@ -19,13 +19,13 @@
 
 \ Definitions to emit 32-bit ints as varints into the print buffer
 
-: <v ( - d ) 0 0 <# ;  \ prepare variable output
-: v> ( d -- caddr len ) #> ;  \ finish, then return buffer and length
+: <v ( -- ) <# ;  \ prepare variable output
+: v> ( -- caddr len ) 0 0 #> ;  \ finish, then return buffer and length
 
-: n#v ( n -- )  \ add one 32-bit value to output
+: >var ( n -- )  \ add one 32-bit value to output
   \ shift one position left - if negative, invert all bits (puts sign in bit 0)
   \ this compresses better for *signed* values of small magnitude
-  rol dup 1 and negate xor
+  rol dup 1 and 0<> shl xor
   \ output lowest 7 bits
   dup $80 or hold
   \ output higher 7-bit groups
@@ -42,12 +42,12 @@
 20 cells buffer: pkt.buf  \ room to collect up to 20 values for sending
       0 variable pkt.ptr  \ current position in this packet buffer
 
-: n+> ( n -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit signed value to packet
+: >+pkt ( n -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit signed value to packet
 
-: <pkt ( format -- ) pkt.buf pkt.ptr ! n+> ;  \ start collecting values
+: <pkt ( format -- ) pkt.buf pkt.ptr ! >+pkt ;  \ start collecting values
 : pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v
-    pkt.ptr @  begin  4 - dup @ n#v  dup pkt.buf u<= until  drop
+    pkt.ptr @  begin  4 - dup @ >var  dup pkt.buf u<= until  drop
   v> 0 rf69-send ;
 
 : *++ ( addr -- c )  dup @ c@  1 rot +! ;
@@ -74,3 +74,73 @@
 
 : var. ( addr cnt -- )  \ decode and display all the varints
   var-init begin var> while . repeat ;
+
+1 constant TESTS
+TESTS [if]
+  -1 variable tests-OK
+  : fail-tests 0 tests-OK ! ;
+  : =always ( n1 n2 -- ) 
+    2dup <> if ." FAIL: " swap . ." <>" . fail-tests else 2drop then ; \ should print out the calling word
+  : always ( f -- )
+    0= if ." FAIL!" fail-tests else ." OK!" then ; \ should print out the calling word
+
+  8 buffer: test-buf
+  8 buffer: test-buf2
+
+  : stack>buffer ( b1 b2 ... bi i -- c-addr len )
+    dup 0 do ( b1 b2 ... bi i )
+      swap over test-buf + i - 1- c!
+    loop
+    test-buf swap
+    ;
+
+  : buffer-cpy ( c-addr1 c-addr2 len -- c-addr1 len ) \ c-addr1 is dest c-addr2 is src
+    tuck 3 pick swap 0 ?do ( c-addr1 len c-addr2 c-addr1 )
+      over i + c@ over i + c!
+    loop 2drop ;
+
+  : buffer. ( c-addr len -- )
+    ." @" over . dup . ." [ " 255 and 0 ?do dup i + c@ . loop drop ." ]" ;
+
+  : =buffers ( c-addr1 len1 c-addr2 len2 -- f )
+    2 pick <> if ." len!=" 2drop drop 0 exit then
+    swap 0 ?do
+      dup i + c@  2 pick i + c@ <> if ." ch!= " unloop 2drop 0 exit then
+    loop 2drop -1
+    ;
+
+  : test-var ( n b1 b2 ... bi i -- )
+    stack>buffer rot
+    ." Testing " dup .
+    <v >var v> test-buf2 -rot buffer-cpy
+    \ ." got: " 2dup buffer. cr
+    \ ." exp: " 2over buffer. cr
+    =buffers always
+    ;
+
+    0   $80 1 test-var
+    1   $82 1 test-var
+    2   $84 1 test-var
+    -1  $81 1 test-var
+    -2  $83 1 test-var
+
+    \ test positive numbers
+    63  $fe 1 test-var
+    64  1 $80 2 test-var
+    127 1 $fe 2 test-var
+    12   6 lshift 34 +  12 196 2 test-var
+    12  13 lshift 34 +  12 0 128 68 + 3 test-var
+    $7f 24 lshift       $0f $70 0 0 128 5 test-var
+
+    \ test negative numbers
+    -64  $ff 1 test-var
+    -65  1 $81 2 test-var
+    -127 1 $fd 2 test-var
+    -128 1 $ff 2 test-var
+    12   6 lshift negate 34 +  11 187 2 test-var
+    12  13 lshift negate 34 +  11 $7f 187 3 test-var
+    $80000000                  $0f $7f $7f $7f $ff 5 test-var
+
+    : check-tests tests-OK @ if ." ** ALL OK **" else ." ** TESTS FAILED! **" then cr ;
+    check-tests
+[then]

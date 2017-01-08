@@ -1,6 +1,9 @@
 \ application setup and main loop
 \ assumes that the GPS is connected to usart2 on PA2&PA3
 
+: rf69-send ;
+include ../flib/any/varint.fs
+
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 1 constant rate   \ seconds between readings
 
@@ -18,4 +21,5 @@
 : fwd
   begin usart2>? if usart2> emit then key? until ." OK" ;
 
+16MHz 1000 systick-hz
 usart2-init
