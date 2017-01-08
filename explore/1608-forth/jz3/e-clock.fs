@@ -39,14 +39,14 @@ cr
 : doze slow only-msi   50 ( *100 ) ms fast ;  \  40 µA
 : coma slow only-msi wait             fast ;  \  32 µA, UART dead
 
-: do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
+: do-adc slow adc-init adc-vcc . adc-temp . -adc  fast ;
 
 : do-bme bme-init bme-calib slow bme-data fast bme-calc . . . ;
 \ : do-tsl tsl-init slow tsl-data fast . ;
 
 led-off
 
-[IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
+[IFDEF] rf69-init  rf69-init rf69-sleep  [THEN]
 
 ( PWR-CR  ) PWR-CR @ hex.
 ( CR      ) RCC-CR @ hex.

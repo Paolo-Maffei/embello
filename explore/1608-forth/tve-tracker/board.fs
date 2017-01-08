@@ -5,6 +5,7 @@ eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 
+include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
 include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32l0/io.fs
@@ -13,32 +14,29 @@ include ../flib/stm32l0/hal.fs
 include ../flib/stm32l0/adc.fs
 include ../flib/stm32l0/timer.fs
 include ../flib/stm32l0/pwm.fs
-include ../flib/stm32l0/i2c.fs
+include ../flib/stm32l0/spi.fs
+\ include ../flib/stm32l0/i2c.fs
+\ include ../flib/any/i2c-bb.fs
 include ../flib/stm32l0/sleep.fs
 
-PA15 variable ssel  \ can be changed at run time
-PB3 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
-include ../flib/stm32l0/spi.fs
-
-PB5 constant LED
+PA15 constant LED
 
 : led-on LED ioc! ;
 : led-off LED ios! ;
 
-: hello ( -- ) flash-kb . ." KB <jnz> " hwid hex.
+: hello ( -- ) flash-kb . ." KB <jz1-tve> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram/flash: " . . ." free " ;
 
 : init ( -- )  \ board initialisation
+  init  \ uses new uart init convention
+  ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   2 RCC-CCIPR !  \ set USART1 clock to HSI16, independent of sysclk
   1000 systick-hz
-  hello ." ok." cr
-;
+  hello ." ok." cr ;
 
 : rx-connected? ( -- f )  \ true if RX is connected (and idle)
   IMODE-LOW PA10 io-mode!  PA10 io@ 0<>  OMODE-AF-PP PA10 io-mode!

@@ -2,13 +2,13 @@
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 \ assumes OLED on i2c
 
-1 constant debug  \ 0 = send RF packets, 1 = display on serial port
-1 constant rate  \ seconds between readings
-0 constant OLED   \ whether OLED is present
+0 constant debug  \ 0 = send RF packets, 1 = display on serial port
+1 constant rate   \ seconds between readings
+0 variable OLED   \ whether OLED is present
 
 \ include ../flib/spi/rf69.fs
-include ../tlib/oled.fs
-include ../tlib/numprint.fs
+\ include ../tlib/oled.fs
+\ include ../tlib/numprint.fs
 
 : c>f ( n -- n ) \ convert celsius to farenheit
   9 * 5 / 32 +
@@ -43,28 +43,28 @@ include ../tlib/numprint.fs
   key? until ;
 
 : send-packet ( vprev vcc tint lux humi pres temp -- )
-  2 <pkt  hwid u+>  n+> 6 0 do u+> loop  pkt>rf ;
+  2 <pkt  hwid 8 0 do n+> loop  pkt>rf ;
 
 : low-power-sleep
-  rf-sleep
+  rf69-sleep
   -adc \ only-msi
   rate 0 do stop1s loop
-  hsi-on +adc ;
+  hsi-on adc-init ;
 
 : init-hw
-  \ 2.1MHz 
-  \ 1000 systick-hz
-  +lptim +i2c +adc
+  2.1MHz 1000 systick-hz
+  lptim-init i2c-init adc-init
 
   OMODE-PP PA0 io-mode!
   OMODE-PP PA1 io-mode!
 
   915750 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf-power
+  rf69-init 16 rf69-power
 
   bme-init drop bme-calib
   tsl-init drop
-  OLED [if] lcd-init show-logo [then]
+  lcd? OLED !
+  OLED if lcd-init show-logo then
 
   adc-vcc                      ( vprev )
   ;
@@ -73,7 +73,7 @@ include ../tlib/numprint.fs
   adc-vcc adc-temp             ( vprev vcc tint )
   tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
 
-  OLED [if] show-oled [then]
+  OLED if show-oled then
 
   show-readings cr 1 ms
   send-packet

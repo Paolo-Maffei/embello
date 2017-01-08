@@ -32,7 +32,7 @@ $40007000 constant PWR-CR
 : only-msi 8 bit RCC-CR ! ;
 
 : wait-for-key begin sleep ( led iox! ) key? until ;
-: reduce rf69-init rf-sleep led-off 2.1MHz ;
+: reduce rf69-init rf69-sleep led-off 2.1MHz ;
 
 \ reduce systick at 65 KHz, else interrupts will eat up all the clock cycles
 \ this means micros/us/millis/ms will all work, but 100x slower than usual
@@ -44,9 +44,9 @@ $40007000 constant PWR-CR
 : snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 450 µA
 : doze   slow only-msi   50 ( *100 ) ms       fast ;  \ 50 µA (or 210?)
 
-: do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
+: do-adc slow adc-init adc-vcc . adc-temp . -adc  fast ;
 
-\ FIXME should only run +i2c once before using these
+\ FIXME should only run i2c-init once before using these
 : do-bme bme-init bme-calib slow bme-data fast bme-calc . . . ;
 : do-tsl tsl-init slow tsl-data fast . ;
 

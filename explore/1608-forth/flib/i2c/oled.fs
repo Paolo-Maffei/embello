@@ -3,6 +3,9 @@
 
 [ifndef] OLED.LARGE  1 constant OLED.LARGE  [then]  \ 0 = 128x32, 1 = 128x64
 
+: lcd? ( -- f )  \ probe whether device exists, return true if it does
+  $3C i2c-addr 0 i2c-xfer 0= ;
+
 : lcd!c ( v -- )  \ send a command to the lcd
   $3C i2c-addr  $80 >i2c >i2c  0 i2c-xfer drop ;
 
@@ -115,7 +118,7 @@ decimal
   drop display ;
 
 : lcd-init ( -- )  \ initialise the oled display
-  +i2c
+  i2c-init
   $AE lcd!c  \ DISPLAYOFF
   $A8 lcd!c  \ SETMULTIPLEX
    63 lcd!c

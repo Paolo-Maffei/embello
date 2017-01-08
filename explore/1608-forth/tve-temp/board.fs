@@ -5,6 +5,7 @@ eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 
+include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
 include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32l0/io.fs
@@ -23,11 +24,13 @@ PA15 constant LED
 : led-on LED ioc! ;
 : led-off LED ios! ;
 
-: hello ( -- ) flash-kb . ." KB <jz1> " hwid hex.
+: hello ( -- ) flash-kb . ." KB <jz1-tve> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram/flash: " . . ." free " ;
 
 : init ( -- )  \ board initialisation
+  init  \ uses new uart init convention
+  ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
