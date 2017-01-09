@@ -1,8 +1,14 @@
 \ application setup and main loop
 \ assumes that the GPS is connected to usart2 on PA2&PA3
 
+1 constant TESTS
+include ../flib/any/testing.fs
+
 : rf69-send ;
+include ../flib/any/buffers.fs
 include ../flib/any/varint.fs
+
+test-summary
 
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 1 constant rate   \ seconds between readings

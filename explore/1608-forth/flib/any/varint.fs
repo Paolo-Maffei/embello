@@ -75,42 +75,13 @@
 : var. ( addr cnt -- )  \ decode and display all the varints
   var-init begin var> while . repeat ;
 
-1 constant TESTS
 TESTS [if]
-  -1 variable tests-OK
-  : fail-tests 0 tests-OK ! ;
-  : =always ( n1 n2 -- ) 
-    2dup <> if ." FAIL: " swap . ." <>" . fail-tests else 2drop then ; \ should print out the calling word
-  : always ( f -- )
-    0= if ." FAIL!" fail-tests else ." OK!" then ; \ should print out the calling word
 
   8 buffer: test-buf
   8 buffer: test-buf2
 
-  : stack>buffer ( b1 b2 ... bi i -- c-addr len )
-    dup 0 do ( b1 b2 ... bi i )
-      swap over test-buf + i - 1- c!
-    loop
-    test-buf swap
-    ;
-
-  : buffer-cpy ( c-addr1 c-addr2 len -- c-addr1 len ) \ c-addr1 is dest c-addr2 is src
-    tuck 3 pick swap 0 ?do ( c-addr1 len c-addr2 c-addr1 )
-      over i + c@ over i + c!
-    loop 2drop ;
-
-  : buffer. ( c-addr len -- )
-    ." @" over . dup . ." [ " 255 and 0 ?do dup i + c@ . loop drop ." ]" ;
-
-  : =buffers ( c-addr1 len1 c-addr2 len2 -- f )
-    2 pick <> if ." len!=" 2drop drop 0 exit then
-    swap 0 ?do
-      dup i + c@  2 pick i + c@ <> if ." ch!= " unloop 2drop 0 exit then
-    loop 2drop -1
-    ;
-
   : test-var ( n b1 b2 ... bi i -- )
-    stack>buffer rot
+    test-buf stack>buffer rot
     ." Testing " dup .
     <v >var v> test-buf2 -rot buffer-cpy
     \ ." got: " 2dup buffer. cr
@@ -141,6 +112,4 @@ TESTS [if]
     12  13 lshift negate 34 +  11 $7f 187 3 test-var
     $80000000                  $0f $7f $7f $7f $ff 5 test-var
 
-    : check-tests tests-OK @ if ." ** ALL OK **" else ." ** TESTS FAILED! **" then cr ;
-    check-tests
 [then]
