@@ -4,7 +4,7 @@
 1 constant TESTS
 include ../flib/any/testing.fs
 
-: rf69-send ;
+: rf-send ;
 include ../flib/any/buffers.fs
 include ../flib/any/varint.fs
 
