@@ -1,4 +1,4 @@
-\ rf69 driver
+\ rf driver
 \ uses spi
 
        $00 constant RF:FIFO
@@ -46,9 +46,9 @@
    0 variable rf.afc
   66 buffer:  rf.buf
 
-8683 variable rf69.freq
-  42 variable rf69.group
-  61 variable rf69.nodeid
+8683 variable rf.freq
+  42 variable rf.group
+  61 variable rf.nodeid
 
 \ jcw version
 \ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
@@ -114,7 +114,7 @@ decimal align
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-: rf-init ( group freq -- )  \ init the RFM69 radio module
+: rf-ini ( group freq -- )  \ init the RFM69 radio module
   spi-init
   $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
@@ -159,12 +159,12 @@ decimal align
 
 \ this is the intended public API for the RF69 driver
 
-: rf69-power ( n -- )  \ change TX power level (0..31)
+: rf-power ( n -- )  \ change TX power level (0..31)
   RF:PA rf@ $E0 and or RF:PA rf! ;
 
-: rf69-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
+: rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
 
-: rf69-recv ( -- b )  \ check whether a packet has been received, return #bytes
+: rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
     RF:M_RX rf!mode
   else rf-rssi rf-status then
@@ -173,29 +173,29 @@ decimal align
     rf.buf over 66 max rf-n@spi
   else 0 then ;
 
-: rf69-send ( addr count hdr -- )  \ send out one packet
+: rf-send ( addr count hdr -- )  \ send out one packet
   RF:M_STDBY rf!mode
   over 2+ RF:FIFO rf!
   dup rf-parity or RF:FIFO rf!
-  $C0 and rf69.nodeid @ or RF:FIFO rf!
+  $C0 and rf.nodeid @ or RF:FIFO rf!
   ( addr count ) rf-n!spi
   RF:M_TX rf!mode
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
   RF:M_STDBY rf!mode ;
 
-: rf69-init ( -- )  \ init RFM69 with current rf69.group and rf69.freq values
-  rf69.group @ rf69.freq @ rf-init ;
+: rf-init ( -- )  \ init RFM69 with current rf.group and rf.freq values
+  rf.group @ rf.freq @ rf-ini ;
 
-: rf69-info ( -- )  \ display reception parameters as hex string
-  rf69.freq @ h.4 rf69.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
+: rf-info ( -- )  \ display reception parameters as hex string
+  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
 
-: rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
-  rf69-init cr
+: rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
+  rf-init cr
   0 rf.last !
   RF:M_FS rf!mode
   begin
-    rf69-recv ?dup if
-      ." RF69 " rf69-info
+    rf-recv ?dup if
+      ." RF69 " rf-info
       dup 0 do
         rf.buf i + c@ h.2
         i 1 = if 2- h.2 space then
@@ -203,7 +203,7 @@ decimal align
     then
   key? until ;
 
-: rf69. ( -- )  \ print out all the RF69 registers
+: rf. ( -- )  \ print out all the RF69 registers
   cr 4 spaces  base @ hex  16 0 do space i . loop  base !
   $60 $00 do
     cr
@@ -213,9 +213,9 @@ decimal align
     loop
   $10 +loop ;
 
-: rf69-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
-  rf69-init  16 rf69-power  0 <# #s #> 0 rf69-send ;
+: rf-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
+  rf-init  16 rf-power  0 <# #s #> 0 rf-send ;
 
-\ rf69.
-\ rf69-listen
-\ 12345 rf69-txtest
+\ rf.
+\ rf-listen
+\ 12345 rf-txtest
