@@ -4,9 +4,9 @@
 cr compiletoflash
 ( core start: ) here dup hex.
 
-include ../flib/stm32l0/usart.fs
-\ include ../flib/spi/rf69.fs
-\ include ../flib/any/varint.fs
+include ../flib/any/buffers.fs
+include ../flib/spi/rf69.fs
+include ../flib/any/varint.fs
 \ include ../flib/i2c/bme280.fs
 \ include ../flib/i2c/tsl4531.fs
 \ include ../flib/i2c/veml6040.fs

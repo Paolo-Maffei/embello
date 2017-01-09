@@ -1,23 +1,19 @@
 \ application setup and main loop
 \ assumes that the GPS is connected to usart2 on PA2&PA3
 
-1 constant TESTS
+: TESTS ;
 include ../flib/any/testing.fs
-
-: rf-send ;
-include ../flib/any/buffers.fs
-include ../flib/any/varint.fs
 
 test-summary
 
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 1 constant rate   \ seconds between readings
 
-: s>usart2 ( c-addr len -- ) \ send string to uart2
-  0 ?do dup i + c@ >usart2 loop drop ;
+: s>uart2 ( c-addr len -- ) \ send string to uart2
+  0 ?do dup i + c@ uart2-emit loop drop ;
 
 : s>gps ( c-addr len -- ) \ send command string to GPS
-  s" PMTK"  s>usart2 s>usart2 13 >usart2 10 >usart2
+  s" PMTK"  s>uart2 s>uart2 13 uart2-emit 10 uart2-emit
   ;
 
 : gps? \ print GPS info
@@ -25,7 +21,7 @@ test-summary
   ;
 
 : fwd
-  begin usart2>? if usart2> emit then key? until ." OK" ;
+  begin uart2-key? if uart2-key emit then key? until ." OK" ;
 
 16MHz 1000 systick-hz
-usart2-init
+uart2-init
