@@ -86,7 +86,7 @@
     <v >var v> test-buf2 -rot buffer-cpy
     \ ." got: " 2dup buffer. cr
     \ ." exp: " 2over buffer. cr
-    =buffers always
+    compare always
     ;
 
   0   $80 1 test:>var

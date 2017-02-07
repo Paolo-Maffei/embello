@@ -106,7 +106,7 @@ decimal align
   ( u ) dup 10 rshift  RF:FRF rf!
   ( u ) dup 2 rshift  RF:FRF 1+ rf!
   ( u ) 6 lshift RF:FRF 2+ rf!
-;
+  ;
 
 : rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
 
@@ -170,7 +170,7 @@ decimal align
   else rf-rssi rf-status then
   RF:IRQ2 rf@  RF:IRQ2_RECVD and if
     RF:FIFO rf@
-    rf.buf over 66 max rf-n@spi
+    rf.buf over 66 min rf-n@spi
   else 0 then ;
 
 : rf-send ( addr count hdr -- )  \ send out one packet
