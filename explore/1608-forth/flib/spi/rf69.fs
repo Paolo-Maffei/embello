@@ -1,4 +1,4 @@
-\ rf driver
+\ rf69 driver
 \ uses spi
 
        $00 constant RF:FIFO
@@ -114,7 +114,7 @@ decimal align
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-: rf-ini ( group freq -- )  \ init the RFM69 radio module
+: rf-ini ( group freq -- )  \ internal init of the RFM69 radio module
   spi-init
   $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
@@ -123,15 +123,12 @@ decimal align
 \ rf-rssi checks whether the rssi bit is set in IRQ1 reg and sets the LED to match.
 \ It also checks whether there is an rssi timeout and restarts the receiver if so.
 : rf-rssi ( -- )
-  \ RF:IRQ1 rf@ h.2 cr
   RF:IRQ1 rf@
   dup RF:IRQ1_RSSI and 3 rshift 1 swap - LED io!
   dup RF:IRQ1_TIMEOUT and if
       RF:M_FS rf!mode
-      \ ." T"
     then
-  drop \ h.2 bl
-  ;
+  drop ;
 
 \ rf-status fetches the IRQ1 reg, checks whether rx_ready is set and was not set
 \ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
@@ -142,10 +139,6 @@ decimal align
       RF:RSSI rf@  rf.rssi !
       RF:LNA rf@  3 rshift  7 and  rf.lna !
       RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
-      \ ." *"
-      \ rf.rssi @ h.2
-    \ else
-      \ ." -"
     then
   then ;
 
@@ -192,7 +185,6 @@ decimal align
 : rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf-init cr
   0 rf.last !
-  RF:M_FS rf!mode
   begin
     rf-recv ?dup if
       ." RF69 " rf-info

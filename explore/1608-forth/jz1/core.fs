@@ -13,7 +13,6 @@ include ../flib/i2c/mag3110.fs
 include ../flib/i2c/oled.fs
 include ../flib/mecrisp/graphics.fs
 include ../flib/mecrisp/multi.fs
-include ../flib/any/digits.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>

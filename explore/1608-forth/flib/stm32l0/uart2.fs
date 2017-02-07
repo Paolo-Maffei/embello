@@ -39,7 +39,6 @@ $40004400 constant USART2
 
   17 bit RCC-APB1ENR bis!  \ enable clock: set USART2EN
   $0 USART2-CR1 ! \ make sure it's disabled
-  \ $0 USART2-CR2 !
   12 bit USART2-CR3 ! \ disable overrun detection
   9600 uart2-baud
   $00121b5f USART2-ICR ! \ clear all status flags

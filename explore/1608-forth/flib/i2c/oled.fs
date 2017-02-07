@@ -34,8 +34,7 @@
     $3C i2c-addr $40 >i2c 
     64 0 do  dup c@ >i2c  1+ loop
     0 i2c-xfer drop
-  loop drop
-  ;
+  loop drop ;
 
 create logo  \ 64x64 pixels
 binary
@@ -124,7 +123,6 @@ decimal
    63 lcd!c
   $D3 lcd!c  \ SETDISPLAYOFFSET
     0 lcd!c
-
   $40 lcd!c  \ SETSTARTLINE
   $20 lcd!c  \ MEMORYMODE
   $00 lcd!c
@@ -141,9 +139,7 @@ decimal
   $F1 lcd!c
   $DB lcd!c  \ SETVCOMDETECT
   $40 lcd!c
-
   $2E lcd!c  \ STOP SCROLL
-
   $D5 lcd!c  \ SETDISPLAYCLOCKDIV
   $80 lcd!c
   $8D lcd!c  \ CHARGEPUMP

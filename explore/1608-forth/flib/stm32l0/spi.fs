@@ -5,8 +5,8 @@
 [ifndef] MISO  PA6 constant MISO  [then]
 [ifndef] MOSI  PA7 constant MOSI  [then]
 
-0 variable ssel.addr
-0 variable ssel.bit
+0 variable ssel.addr \ address where to toggle chip select
+0 variable ssel.bit  \ bitmask to toggle for chip select
 
 $40013000 constant SPI1
      SPI1 $00 + constant SPI1-CR1

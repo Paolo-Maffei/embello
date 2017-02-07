@@ -1,6 +1,6 @@
 \ interrupt-based USART2 with input ring buffer
 \ needs ring.fs
-\ needs uart2-stm32l0.fs
+\ needs uart2.fs
 
 128 4 + buffer: uart2-ring
 
