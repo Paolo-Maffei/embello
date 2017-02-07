@@ -15,8 +15,8 @@ include ../flib/stm32l0/adc.fs
 include ../flib/stm32l0/timer.fs
 include ../flib/stm32l0/pwm.fs
 include ../flib/stm32l0/spi.fs
-\ include ../flib/stm32l0/i2c.fs
-include ../flib/any/i2c-bb.fs
+include ../flib/stm32l0/i2c.fs
+\ include ../flib/any/i2c-bb.fs
 include ../flib/stm32l0/uart2.fs
 include ../flib/any/ring.fs
 include ../flib/stm32l0/uart2-irq.fs
