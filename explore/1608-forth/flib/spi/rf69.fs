@@ -60,13 +60,14 @@ hex
   1942 h, 1A42 h, \ RxBw 125khz, AFCBw 125khz
   1E0C h, \ AFC auto-clear, auto-on
   2607 h, \ disable clkout
-  29A0 h, \ RSSI thres -80dB
+  29C4 h, \ RSSI thres -98dB
   2B40 h, \ RSSI timeout after 128 bytes
   2D05 h, \ Preamble 5 bytes
   2E88 h, \ sync size 2 bytes
   2F2D h, \ sync1: 0x2D
   302A h, \ sync2: network group
   37D8 h, \ deliver even if CRC fails
+  37D0 h, \ drop pkt if CRC fails
   3842 h, \ max 62 byte payload
   3C8F h, \ fifo thres
   3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
