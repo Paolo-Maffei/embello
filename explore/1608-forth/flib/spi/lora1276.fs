@@ -89,10 +89,10 @@ RF:MAXPKT buffer:  rf.buf
 \ ===== reading/writing registers
 
 \ r/w access to the RF registers
-: rf! ( b reg -- ) $80 or >spi2 inline ;     \ write register
-: rf@ ( reg -- b ) spi2> inline ;            \ read register
-: rf-n@spi ( addr len -- ) $00 spiN> inline ;  \ read N bytes from the FIFO
-: rf-n!spi ( addr len -- ) $80 >spiN inline ;  \ write N bytes to the FIFO
+: rf! ( b reg -- ) $80 or >spi2 ; \ inline ;     \ write register
+: rf@ ( reg -- b ) spi2> ; \ inline ;            \ read register
+: rf-n@spi ( addr len -- ) $00 spiN> ; \ inline ;  \ read N bytes from the FIFO
+: rf-n!spi ( addr len -- ) $80 >spiN ; \ inline ;  \ write N bytes to the FIFO
 
 \ ===== changing radio configuration
 

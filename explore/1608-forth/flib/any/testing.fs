@@ -11,13 +11,13 @@
 : =always ( n1 n2 -- ) \ assert that the two TOS values must be equal
   2dup <> if
     ." FAIL: got " swap . ." expected " . fail-tests
-  else 2drop then ;
+  else 2drop ." OK!" then ;
 
 : =always-fix ( df1 df2 -- ) \ assert that the two TOS fixed-point values must be equal
   2dup 2rot 2dup 2rot ( df2 df1 df1 df2 )
   d<> if
     ." FAIL: got " f. ." expected " f. fail-tests
-  else 2drop 2drop then ;
+  else 2drop 2drop ." OK!" then ;
 
 : always ( f -- ) \ assert that the flag on TOS is true
   0= if
