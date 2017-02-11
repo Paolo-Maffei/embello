@@ -66,7 +66,7 @@ hex
   2E88 h, \ sync size 2 bytes
   2F2D h, \ sync1: 0x2D
   302A h, \ sync2: network group
-  37D8 h, \ deliver even if CRC fails
+  \ 37D8 h, \ deliver even if CRC fails
   37D0 h, \ drop pkt if CRC fails
   3842 h, \ max 62 byte payload
   3C8F h, \ fifo thres
