@@ -100,14 +100,18 @@ RF:MAXPKT buffer:  rf.buf
   dup rf.mode !
   RF:OP rf@ $F8 and  or RF:OP rf! ;
 
-: rf!freq ( u -- )  \ set the frequency, supports any input precision
-  begin dup 100000000 < while 10 * repeat
-  dup rf.nomfreq !
+: rf>freq ( u -- ) \ set the frequency, internal operation
+  dup rf.actfreq !
   524288 32000000 u*/
   dup 16 rshift RF:FRF rf!
   dup  8 rshift RF:FRF 1+ rf!
   RF:FRF 2+ rf!
   ;
+
+: rf!freq ( u -- )  \ set the frequency, supports any input precision
+  begin dup 100000000 < while 10 * repeat
+  dup rf.nomfreq !
+  rf>freq ;
 
 : rf!sync ( u -- ) RF:SYNC rf! ;  \ set the sync byte
 
@@ -119,6 +123,22 @@ RF:MAXPKT buffer:  rf.buf
 : rf!rate ( mc1 mc2 mc3 -- ) \ sets modem config registers 1, 2 and 3
   RF:M_STDBY rf!mode RF:MODEMCONF3 rf! RF:MODEMCONF2 rf! RF:MODEMCONF1 rf!
   ;
+
+\ == data rates from 40bps to 15kbps in steps of 6dBi sensitivity
+
+\ 10.4khz bw, 4/6 coding rate, spreading fct 9 =  163bps, -140dBm
+: rf!bw10cr6sf9    $14 $94 $0C rf!rate  10400 rf.bw ! ;
+\ 10.4khz bw, 4/6 coding rate, spreading fct 7  = 650bps, -136dBm
+: rf!bw10cr6sf7    $14 $74 $04 rf!rate  10400 rf.bw ! ;
+\ 62.5khz bw, 4/6 coding rate, spreading fct 9  = 976bps, -134dBm
+: rf!bw62cr6sf9    $64 $94 $04 rf!rate  62500 rf.bw ! ;
+\ 62.5khz bw, 4/6 coding rate, spreading fct 7 = 3906bps, -128dBm
+: rf!bw62cr6sf7    $64 $74 $04 rf!rate  62500 rf.bw ! ;
+\ 250khz bw, 4/5 coding rate, spreading fct 7 = 15625bps, -122dBm
+: rf!bw250cr5sf7   $82 $74 $04 rf!rate 250000 rf.bw ! ;
+
+\ == combinations from radiohead library
+
 \ 500Khz bw, 4/5 coding rate, spreading fct 7 = 21875bps
 : rf!bw500cr45sf7  $92 $74 $04 rf!rate 500000 rf.bw ! ;
 \ 125Khz bw, 4/5 coding rate, spreading fct 7 = 5468bps
@@ -128,11 +148,14 @@ RF:MAXPKT buffer:  rf.buf
 \ 31.25Khz bw, 4/8 coding rate, spreading fct 9 = 275bps
 : rf!bw31cr48sf9   $48 $94 $04 rf!rate  31250 rf.bw ! ;
 
-: rf-correct ( -- ) \ corrrect for fei
+: rf-correct ( -- ) \ corrrect for fei: change center freq and adjust bit rate
   rf.fei @ 2 arshift \ apply 1/4 of measured offset as correction
-  rf.bw @ 10 /       \ don't apply more than 10% of rx bandwidth
+  rf.bw @ 2 arshift  \ don't apply more than 1/4 of rx bandwidth
   over 0< if negate max else min then
-  rf.nomfreq @ swap - rf!freq
+  rf.actfreq @ swap - dup rf>freq
+  rf.nomfreq @ dup -rot - ( nomfreq delta-freq )
+  swap 20 arshift /  \ ppm offset measured
+  RF:PPMCORR rf!     \ set bit rate correction
   ;
 
 \ ===== utilities
@@ -194,7 +217,9 @@ RF:MAXPKT buffer:  rf.buf
   rf.snr @ h.2 rf.rssi @ h.2 rf.fei @ h.4 ;
 
 : rf>uart ( len -- len )  \ print reception parameters
-  rf.nomfreq @ .n ." Hz "
+  rf.nomfreq @ dup .n
+  rf.actfreq @ swap -
+  dup 0 >= if [char] + emit then .n  ." Hz "
   rf.snr @ .n ." dB "
   rf.rssi @ .n ." dBm "
   \ rf.lna @ rf.lna>db .n ." dB " doesn't seem to work...
@@ -203,6 +228,14 @@ RF:MAXPKT buffer:  rf.buf
   ;
 
 \ ===== send & receive
+
+: rf+info ( c-addr -- ) \ add 2 info bytes at c-addr, which should be at end of packet
+  rf.rssi @ 164 + 127 min
+  over c!
+  rf.fei @ 64 + 7 arshift
+  \ dup 0< if 1+ then \ round towards 0
+  swap 1+ c!
+  ;
 
 : rf-rxpkt ( -- b ) \ extract packet and return length
   RF:FIFORXCURR rf@ RF:FIFOPTR rf!                 \ set fifo pointer to start of pkt
@@ -221,7 +254,7 @@ RF:MAXPKT buffer:  rf.buf
 
 : rxend begin RF:IRQFLAGS rf@ $c0 and until ;
 
-: rf-ack? ( -- f )  \ turn on receiver and wait for ack, return got-ack flag
+: rf-ack? ( -- f )  \ turn on receiver and wait for ack, return length of ack pkt
   rf!clrirq
   RF:M_RXSINGLE rf!mode
   rxend
@@ -229,10 +262,9 @@ RF:MAXPKT buffer:  rf.buf
   dup RF:IRQ_RXTIMEOUT and if drop 0 exit then
   dup RF:IRQ_CRCERROR and if drop 0 exit then
   drop rf-rxpkt
-  ." LoRa ACK " rf>uart ." : "
-  . cr \ 0 do rf.buf i + c@ . loop cr
-  rf-correct
-  -1 ;
+  \ ." LoRa ACK " rf>uart ." : "
+  \ . cr \ 0 do rf.buf i + c@ . loop cr
+  rf-correct ;
 
 : rf-txdone ( -- )
   begin RF:IRQFLAGS rf@ RF:IRQ_TXDONE and 0= while 1 ms repeat ;
@@ -296,7 +328,7 @@ decimal align
   $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
   RF:M_SLEEP rf!mode \ init rf.mode var
-  rf!sync rf!freq rf!bw125cr45sf7 ;
+  rf!sync rf!freq rf!bw250cr5sf7 ;
 
 \ ===== sample tests
 
