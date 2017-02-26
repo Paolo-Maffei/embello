@@ -1,6 +1,6 @@
 \ application setup and main loop
 \ assumes that the GPS is connected to usart2 on PA2&PA3
-reset
+\ reset
 cr
 
 \ include ../flib/spi/lora1276.fs
@@ -15,7 +15,8 @@ include gps.fs
   \ rf-init 16 rf-power
 
   \ LoRa @423.6Mhz
-  432592 $CB rf-init rf!bw10cr6sf7
+  432595 $CB rf-init rf!lora125.8
+  17 rf-power
   ;
 
 66 buffer: txbuf
@@ -30,7 +31,7 @@ include gps.fs
   2+                    ( txbuf len+2 )      \ adjust for info trailer
   ." BUF> " 2dup buffer. cr
   led-off
-  $2A rf-send           ( )                  \ send with ack req as node 10
+  $2B rf-send           ( )                  \ send with ack req as node 11
   rf-ack? ?dup if                            \ wait for ack
     led-on ." LoRa ACK " rf>uart ." : " . cr
   else
@@ -40,9 +41,10 @@ include gps.fs
 : main
   init-hw begin
     gps-line ?dup if
-      \ ." GPS> " 2dup buffer. cr
       tx+ack
     then
   key? until ;
+
+: m init-hw begin 80 0 do gps-line ?dup if tx+ack then loop ." *** RESET" cr 432600 rf!freq again ;
 
 \ main

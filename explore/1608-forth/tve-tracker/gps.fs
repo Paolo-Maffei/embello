@@ -105,7 +105,7 @@ char $ constant DOLLAR
 
 : <pkt ( -- ) pkt.buf pkt.ptr ! ;  \ start collecting values for the packet
 : pkt> ( format -- c-addr len )    \ encode the collected values as RF packet
-  ." PKT> " pkt.ptr @  begin  4 - dup @ . dup pkt.buf u<= until  drop cr
+  ." PKT> " pkt.ptr @  begin  4 - dup @ . dup pkt.buf u<= until  drop dup . cr
   <v
     pkt.ptr @  begin  4 - dup @ >var  dup pkt.buf u<= until  drop
     hold

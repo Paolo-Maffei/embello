@@ -12,7 +12,7 @@
        $27 constant RF:IRQ1
        $28 constant RF:IRQ2
        $2F constant RF:SYN1
-       $30 constant RF:SYN2
+       $31 constant RF:SYN3
        $39 constant RF:ADDR
        $3A constant RF:BCAST
        $3C constant RF:THRESH
@@ -33,7 +33,7 @@
      6 bit constant RF:IRQ1_RXRDY
      3 bit constant RF:IRQ1_RSSI
      2 bit constant RF:IRQ1_TIMEOUT
-     0 bit constant RF:IRQ1_SMATCH
+     0 bit constant RF:IRQ1_SYNC
 
      6 bit constant RF:IRQ2_FIFO_NE
      3 bit constant RF:IRQ2_SENT
@@ -44,6 +44,7 @@
    0 variable rf.rssi
    0 variable rf.lna
    0 variable rf.afc
+   0 variable rf.fei
   66 buffer:  rf.buf
 
 8683 variable rf.freq
@@ -52,26 +53,30 @@
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
-  0100 h, \ opmode: sleep
   0200 h, \ packet mode, fsk
-  0302 h, 048A h, \ bit rate 49,261 hz
-  0505 h, 06C3 h, \ 90.3kHzFdev -> modulation index = 2
-  0B20 h, \ low M
-  1942 h, 1A42 h, \ RxBw 125khz, AFCBw 125khz
+  0302 h, 048A h, \ 49230bps
+  \ 0502 h, 06E1 h, \ 45kHzFdev -> modulation index = 1.8
+  0503 h, 064E h, \ 51kHzFdev -> modulation index = 2.1
+  \ 0503 h, 0677 h, \ 56kHzFdev -> modulation index = 2.2
+  \ 0505 h, 0640 h, \ 90kHzFdev -> modulation index = 4
+  0B00 h, \ AFC low beta off
+  1952 h, 1A4A h, \ RxBw 83khz, AFCBw 100khz
+  \ 194A h, 1A42 h, \ RxBw 100khz, AFCBw 125khz
   1E0C h, \ AFC auto-clear, auto-on
   2607 h, \ disable clkout
-  29C4 h, \ RSSI thres -98dB
+  29B4 h, \ RSSI thres -90dB
   2B40 h, \ RSSI timeout after 128 bytes
   2D05 h, \ Preamble 5 bytes
-  2E88 h, \ sync size 2 bytes
-  2F2D h, \ sync1: 0x2D
-  302A h, \ sync2: network group
+  2E90 h, \ sync size 3 bytes
+  2FAA h, \ sync1: 0xAA
+  302D h, \ sync2: 0x2D
+  312A h, \ sync3: network group
   37D0 h, \ drop pkt if CRC fails \ 37D8 h, \ deliver even if CRC fails
   3842 h, \ max 62 byte payload
   3C8F h, \ fifo thres
   3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
-  6F20 h, \ Test DAGC
-  7102 h, \ RegTestAfc
+  6F30 h, \ RegTestDAGC 20->continuous DAGC with low-beta offset, 30->w/out low-beta
+  7109 h, \ RegTestAfc   9->4392Hz low-beta offset
   0 h,  \ sentinel
 decimal align
 
@@ -81,12 +86,16 @@ decimal align
 : rf@ ( reg -- b ) 0 swap rf!@ ;
 
 : rf-h! ( h -- ) dup $FF and swap 8 rshift rf! ;
-: rf-config! ( addr -- ) begin  dup h@  ?dup while  rf-h!  2+ repeat drop ;
 
 : rf!mode ( b -- )  \ set the radio mode, and store a copy in a variable
   dup rf.mode !
   RF:OP rf@  $E3 and  or RF:OP rf!
   begin  RF:IRQ1 rf@  RF:IRQ1_MRDY and  until ;
+
+: rf-config! ( addr -- )
+  RF:M_STDBY rf!mode \ some regs don't program in sleep mode, go figure...
+  begin  dup h@  ?dup while  rf-h!  2+ repeat drop
+  ;
 
 : rf-freq ( u -- )  \ set the frequency, supports any input precision
   begin dup 100000000 < while 10 * repeat
@@ -96,7 +105,7 @@ decimal align
   ( u ) 6 lshift RF:FRF 2+ rf!
   ;
 
-: rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
+: rf-group ( u -- ) RF:SYN3 rf! ;  \ set the net group (1..250)
 
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
@@ -118,14 +127,21 @@ decimal align
     then
   drop ;
 
+\ rf-timeout checks whether there is an rssi timeout and restarts the receiver if so.
+: rf-timeout ( -- )
+  RF:IRQ1 rf@ RF:IRQ1_TIMEOUT and if
+    RF:M_FS rf!mode
+  then ;
+
 \ rf-status fetches the IRQ1 reg, checks whether rx_ready is set and was not set
-\ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
+\ in rf.last. If so, it saves rssi, lna, and fei values; and then updates rf.last.
 \ rf.last ensures that the info is grabbed only once per packet.
-: rf-status ( -- )  \ update status values on RXRDY
-  RF:IRQ1 rf@  RF:IRQ1_RXRDY and  rf.last @ <> if
-    rf.last  RF:IRQ1_RXRDY over xor!  @ if
+: rf-status ( -- )  \ update status values on sync match
+  RF:IRQ1 rf@  RF:IRQ1_SYNC and  rf.last @ <> if
+    rf.last  RF:IRQ1_SYNC over xor!  @ if
       RF:RSSI rf@  rf.rssi !
       RF:LNA rf@  3 rshift  7 and  rf.lna !
+      RF:FEI rf@  8 lshift  RF:FEI 1+ rf@  or rf.fei !
       RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
     then
   then ;
@@ -136,7 +152,7 @@ decimal align
   0 do  dup c@ RF:FIFO rf! 1+  loop drop ;
 
 : rf-parity ( -- u )  \ calculate group parity bits
-  RF:SYN2 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
+  RF:SYN3 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
 
 \ this is the intended public API for the RF69 driver
 
@@ -147,11 +163,21 @@ decimal align
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
+    0 rf.rssi !  0 rf.fei !  0 rf.afc !
     RF:M_RX rf!mode
   else rf-rssi rf-status then
   RF:IRQ2 rf@  RF:IRQ2_RECVD and if
-    RF:FIFO rf@
-    rf.buf over 66 min rf-n@spi
+    RF:FIFO rf@ 66 min \ fetch length and limit
+    rf.buf over rf-n@spi
+  else 0 then ;
+
+: rf-recv2 ( -- b )  \ check whether a packet has been received, return #bytes
+  rf.mode @ RF:M_RX <> if
+    RF:M_RX rf!mode
+  else rf-rssi rf-status then
+  RF:IRQ2 rf@  RF:IRQ2_RECVD and if
+    RF:FIFO rf@ 66 min \ fetch length and limit
+    rf.buf over rf-n@spi
   else 0 then ;
 
 : rf-send ( addr count hdr -- )  \ send out one packet
@@ -168,7 +194,7 @@ decimal align
   rf.group @ rf.freq @ rf-ini ;
 
 : rf-info ( -- )  \ display reception parameters as hex string
-  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
+  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.fei @ h.4 ;
 
 : rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf-init cr

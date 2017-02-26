@@ -124,29 +124,42 @@ RF:MAXPKT buffer:  rf.buf
   RF:M_STDBY rf!mode RF:MODEMCONF3 rf! RF:MODEMCONF2 rf! RF:MODEMCONF1 rf!
   ;
 
+\ == data rates used by LoRaWAN
+\ The name consists of the bandwidth.spreading-factor, the coding rate is 4/5 on all,
+\ the two slowest have low-data-rate optimization. The comment shows the raw bit rate,
+\ the time to Tx a 20-byte packet, and the Rx sensitivitry.
+
+: rf!lora125.12  $72 $c4 $0C rf!rate 125000 rf.bw ! ; \   250bps, 1318ms, -137dBm
+: rf!lora125.11  $72 $b4 $0C rf!rate 125000 rf.bw ! ; \   440bps,  660ms, -136dBm
+: rf!lora125.10  $72 $a4 $04 rf!rate 125000 rf.bw ! ; \   980bps,  370ms, -134dBm
+: rf!lora125.9   $72 $94 $04 rf!rate 125000 rf.bw ! ; \  1760bps,  185ms, -131dBm
+: rf!lora125.8   $72 $84 $04 rf!rate 125000 rf.bw ! ; \  3125bps,  103ms, -128dBm
+: rf!lora125.7   $72 $74 $04 rf!rate 125000 rf.bw ! ; \  5470bps,   57ms, -125dBm
+: rf!lora250.7   $82 $74 $04 rf!rate 250000 rf.bw ! ; \ 11000bps,   28ms, -122dBm
+
 \ == data rates from 40bps to 15kbps in steps of 6dBi sensitivity
 
 \ 10.4khz bw, 4/6 coding rate, spreading fct 9 =  163bps, -140dBm
-: rf!bw10cr6sf9    $14 $94 $0C rf!rate  10400 rf.bw ! ;
+\ : rf!bw10cr6sf9    $14 $94 $0C rf!rate  10400 rf.bw ! ;
 \ 10.4khz bw, 4/6 coding rate, spreading fct 7  = 650bps, -136dBm
-: rf!bw10cr6sf7    $14 $74 $04 rf!rate  10400 rf.bw ! ;
+\ : rf!bw10cr6sf7    $14 $74 $04 rf!rate  10400 rf.bw ! ;
 \ 62.5khz bw, 4/6 coding rate, spreading fct 9  = 976bps, -134dBm
-: rf!bw62cr6sf9    $64 $94 $04 rf!rate  62500 rf.bw ! ;
+\ : rf!bw62cr6sf9    $64 $94 $04 rf!rate  62500 rf.bw ! ;
 \ 62.5khz bw, 4/6 coding rate, spreading fct 7 = 3906bps, -128dBm
-: rf!bw62cr6sf7    $64 $74 $04 rf!rate  62500 rf.bw ! ;
+\ : rf!bw62cr6sf7    $64 $74 $04 rf!rate  62500 rf.bw ! ;
 \ 250khz bw, 4/5 coding rate, spreading fct 7 = 15625bps, -122dBm
-: rf!bw250cr5sf7   $82 $74 $04 rf!rate 250000 rf.bw ! ;
+\ : rf!bw250cr5sf7   $82 $74 $04 rf!rate 250000 rf.bw ! ;
 
 \ == combinations from radiohead library
 
 \ 500Khz bw, 4/5 coding rate, spreading fct 7 = 21875bps
-: rf!bw500cr45sf7  $92 $74 $04 rf!rate 500000 rf.bw ! ;
+\ : rf!bw500cr45sf7  $92 $74 $04 rf!rate 500000 rf.bw ! ;
 \ 125Khz bw, 4/5 coding rate, spreading fct 7 = 5468bps
-: rf!bw125cr45sf7  $72 $74 $04 rf!rate 125000 rf.bw ! ;
+\ : rf!bw125cr45sf7  $72 $74 $04 rf!rate 125000 rf.bw ! ;
 \ 125Khz bw, 4/8 coding rate, spreading fct 12 = 183bps
-: rf!bw125cr48sf12 $78 $c4 $04 rf!rate 125000 rf.bw ! ;
+\ : rf!bw125cr48sf12 $78 $c4 $04 rf!rate 125000 rf.bw ! ;
 \ 31.25Khz bw, 4/8 coding rate, spreading fct 9 = 275bps
-: rf!bw31cr48sf9   $48 $94 $04 rf!rate  31250 rf.bw ! ;
+\ : rf!bw31cr48sf9   $48 $94 $04 rf!rate  31250 rf.bw ! ;
 
 : rf-correct ( -- ) \ corrrect for fei: change center freq and adjust bit rate
   rf.fei @ 2 arshift \ apply 1/4 of measured offset as correction
@@ -328,7 +341,7 @@ decimal align
   $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
   RF:M_SLEEP rf!mode \ init rf.mode var
-  rf!sync rf!freq rf!bw250cr5sf7 ;
+  rf!sync rf!freq rf!lora125.8 ;
 
 \ ===== sample tests
 
