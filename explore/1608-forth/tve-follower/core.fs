@@ -4,15 +4,18 @@
 cr compiletoflash
 ( core start: ) here dup hex.
 
-include ../flib/spi/rf69.fs
+\ include ../flib/mecrisp/disassembler-m0.fs
+
+include ../flib/stm32l0/uart2.fs
+include ../flib/any/ring.fs
+include ../flib/stm32l0/uart2-irq.fs
+
+include ../flib/any/buffers.fs
+include ../flib/spi/lora1276.fs
 include ../flib/any/varint.fs
-include ../flib/i2c/bme280.fs
-include ../flib/i2c/tsl4531.fs
-\ include ../flib/i2c/veml6040.fs
-\ include ../flib/i2c/mag3110.fs
 include ../flib/i2c/oled.fs
 include ../flib/mecrisp/graphics.fs
-include ../flib/mecrisp/multi.fs
+include ../tlib/numprint.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>

@@ -8,7 +8,7 @@ cr
 
 : highz-gpio
 \ this s(h)aves another 0.6 µA ...
-  IMODE-ADC PA0  io-mode!
+\ IMODE-ADC PA0  io-mode!
   IMODE-ADC PA1  io-mode!
   IMODE-ADC PA2  io-mode!
   IMODE-ADC PA3  io-mode!
@@ -36,16 +36,22 @@ cr
 ;
 
 : lp-blink ( -- )
+  2.1MHz  1000 systick-hz only-msi
+  OMODE-PP PA0 io-mode! \ for debugging
+  PA0 ioc! 10 ms PA0 ios! 10 ms PA0 ioc!
   highz-gpio
-  2.1MHz  1000 systick-hz  only-msi
   begin
+    OMODE-PP PA0 io-mode! \ for debugging
+    PA0 ios!
     led-on
-    [IFDEF] rf-init  rf-recv drop  rf-sleep  [ELSE]  10 ms  [THEN]
+    10 ms \ [IFDEF] rf-init  rf-recv drop  rf-sleep  [ELSE]  10 ms  [THEN]
     led-off
-    stop10s
+    PA0 ioc!
+    stop1s
   again ;
 
-[IFDEF] rf-init  rf-init rf-sleep  [THEN]
+[IFDEF] rf-init   ." rf-init" cr rf-init rf-sleep  [THEN]
+[IFDEF] bme-init  ." bme-init" cr i2c-init bme-init drop  [THEN]
 lptim-init lptim?
 
 ( clock-hz    ) clock-hz    @ .

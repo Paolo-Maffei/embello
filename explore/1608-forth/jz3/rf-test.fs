@@ -1,7 +1,7 @@
 
 \ TvE init
 : ti
-  912500000 rf.freq ! 6 rf.group ! rf-init $08 rf-power
+  912500000 rf.freq ! 6 rf.group ! rf-init $1f rf-power
   rf. cr
   ;
 
@@ -17,19 +17,10 @@
 : .n ( n -- ) \ print signed integer without following space
   dup abs 0 <# #S rot sign #> type ;
 
-: rf-correct
-  rf.afc @ 16 lshift 16 arshift 61 *         \ AFC correction applied in Hz
-  \ 4392 -                                     \ adjust for AFC low beta offset
-  2 arshift                                  \ apply 1/4 of measured offset as correction
-  12000 over 0< if negate max else min then  \ don't apply more than 1/4 of Fdev
-  rf.freq @ + dup rf.freq ! rf-freq          \ apply correction
-  ;
-
 : rf>uart ( len -- len )  \ print reception parameters
   rf.freq @ .n ." Hz "
   rf.rssi @ 2/ negate .n ." dBm "
-  rf.fei @ 16 lshift 16 arshift 61 * .n ." Hz ("
-  rf.afc @ 16 lshift 16 arshift 61 * .n ." Hz) "
+  rf.afc @ 16 lshift 16 arshift 61 * .n ." Hz "
   dup .n ." b "
   ;
 
@@ -51,8 +42,43 @@
       100 us
     loop
     if ." lost" cr then
+    RF:PA rf@ $1f xor RF:PA rf!
     \ RF:SYN3 rf@ not RF:SYN3 rf!
     300 ms
   again ;
 
+: low-power-sleep ( n -- ) \ sleep n * 100ms at low power
+  rf-sleep
+  -adc \ only-msi
+  0 do stop100ms loop
+  hsi-on adc-init ;
 
+\ Send Hello World and expect an ACK
+: tb
+  ti
+  begin
+    s" Hello World" $80 rf-send
+    20 rf-ack? ?dup if
+      rx-connected? if
+        rf-sleep
+        PA0 ios!
+        ." RF69 " rf>uart
+        0 do
+          rf.buf i + c@ h.2
+        loop
+        PA0 ioc!
+      then
+      rf-correct
+      LED ioc!
+    else ." lost" then cr
+    \ RF:PA rf@ $1f xor RF:PA rf!
+    \ RF:SYN3 rf@ not RF:SYN3 rf!
+    1 low-power-sleep
+    LED ios!
+    600 low-power-sleep
+  again ;
+
+: main
+  2.1MHz  1000 systick-hz  lptim-init adc-init
+  OMODE-PP PA0 io-mode!
+  tb ;

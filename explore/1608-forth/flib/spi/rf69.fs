@@ -7,7 +7,6 @@
        $11 constant RF:PA
        $18 constant RF:LNA
        $1F constant RF:AFC
-       $21 constant RF:FEI
        $24 constant RF:RSSI
        $27 constant RF:IRQ1
        $28 constant RF:IRQ2
@@ -38,13 +37,13 @@
      6 bit constant RF:IRQ2_FIFO_NE
      3 bit constant RF:IRQ2_SENT
      2 bit constant RF:IRQ2_RECVD
+     1 bit constant RF:IRQ2_CRCOK
 
    0 variable rf.mode
    0 variable rf.last
    0 variable rf.rssi
    0 variable rf.lna
    0 variable rf.afc
-   0 variable rf.fei
   66 buffer:  rf.buf
 
 8683 variable rf.freq
@@ -74,7 +73,7 @@ hex
   37D0 h, \ drop pkt if CRC fails \ 37D8 h, \ deliver even if CRC fails
   3842 h, \ max 62 byte payload
   3C8F h, \ fifo thres
-  3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
+  3D10 h, \ PacketConfig2, interpkt = 1, autorxrestart: 12=on/10=off
   6F30 h, \ RegTestDAGC 20->continuous DAGC with low-beta offset, 30->w/out low-beta
   7109 h, \ RegTestAfc   9->4392Hz low-beta offset
   0 h,  \ sentinel
@@ -103,6 +102,13 @@ decimal align
   ( u ) dup 10 rshift  RF:FRF rf!
   ( u ) dup 2 rshift  RF:FRF 1+ rf!
   ( u ) 6 lshift RF:FRF 2+ rf!
+  ;
+
+: rf-correct ( -- ) \ correct the freq based on the AFC measurement of the last packet
+  rf.afc @ 16 lshift 16 arshift 61 *         \ AFC correction applied in Hz
+  2 arshift                                  \ apply 1/4 of measured offset as correction
+  5000 over 0< if negate max else min then   \ don't apply more than 5khz
+  rf.freq @ + dup rf.freq ! rf-freq          \ apply correction
   ;
 
 : rf-group ( u -- ) RF:SYN3 rf! ;  \ set the net group (1..250)
@@ -134,14 +140,13 @@ decimal align
   then ;
 
 \ rf-status fetches the IRQ1 reg, checks whether rx_ready is set and was not set
-\ in rf.last. If so, it saves rssi, lna, and fei values; and then updates rf.last.
+\ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
 \ rf.last ensures that the info is grabbed only once per packet.
 : rf-status ( -- )  \ update status values on sync match
   RF:IRQ1 rf@  RF:IRQ1_SYNC and  rf.last @ <> if
     rf.last  RF:IRQ1_SYNC over xor!  @ if
       RF:RSSI rf@  rf.rssi !
       RF:LNA rf@  3 rshift  7 and  rf.lna !
-      RF:FEI rf@  8 lshift  RF:FEI 1+ rf@  or rf.fei !
       RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
     then
   then ;
@@ -163,22 +168,28 @@ decimal align
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
-    0 rf.rssi !  0 rf.fei !  0 rf.afc !
+    0 rf.rssi !  0 rf.afc !
     RF:M_RX rf!mode
   else rf-rssi rf-status then
-  RF:IRQ2 rf@  RF:IRQ2_RECVD and if
+  RF:IRQ2 rf@  RF:IRQ2_CRCOK and if
     RF:FIFO rf@ 66 min \ fetch length and limit
     rf.buf over rf-n@spi
   else 0 then ;
 
-: rf-recv2 ( -- b )  \ check whether a packet has been received, return #bytes
-  rf.mode @ RF:M_RX <> if
-    RF:M_RX rf!mode
-  else rf-rssi rf-status then
-  RF:IRQ2 rf@  RF:IRQ2_RECVD and if
-    RF:FIFO rf@ 66 min \ fetch length and limit
-    rf.buf over rf-n@spi
-  else 0 then ;
+: rf-ack? ( ms -- b ) \ waits ms milliseconds for an ACK and returns #bytes recv'd
+  0 rf.rssi !  0 rf.afc !
+  RF:M_RX rf!mode
+  0 do
+    rf-status \ capture rssi, afc etc.
+    RF:IRQ2 rf@  RF:IRQ2_CRCOK and if
+      RF:FIFO rf@ 66 min \ fetch length and limit
+      rf.buf over rf-n@spi
+      unloop exit
+    then
+    1 ms
+  loop
+  RF:M_STDBY rf!mode \ kill RX
+  0 ;
 
 : rf-send ( addr count hdr -- )  \ send out one packet
   RF:M_STDBY rf!mode
@@ -194,7 +205,7 @@ decimal align
   rf.group @ rf.freq @ rf-ini ;
 
 : rf-info ( -- )  \ display reception parameters as hex string
-  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.fei @ h.4 ;
+  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
 
 : rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf-init cr

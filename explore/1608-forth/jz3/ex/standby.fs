@@ -32,4 +32,6 @@ cr
 ( EXTI-PR     ) EXTI-PR     @ hex.
 ( SCR         ) SCR         @ hex.
 
+OMODE-PP PA0 io-mode! \ for debugging
+PA0 ioc! 10 ms PA0 ios! 10 ms PA0 ioc!
 led-off standby led-on

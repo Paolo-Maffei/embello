@@ -295,6 +295,9 @@ RF:MAXPKT buffer:  rf.buf
   rf-txdone \ ??
   ;
 
+: rf-ack ( -- ) \ send ACK
+  0 0 $C0 rf.buf c@ $0F and or rf-send ;
+
 \ ===== init / config
 
 \ init values copied from Go driver

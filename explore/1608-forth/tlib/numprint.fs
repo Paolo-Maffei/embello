@@ -22,7 +22,7 @@
   #> ( c-addr len )
   ;
 
-: f>n.m ( ncomma nwhole n m -- c-addr len ) \ convert fractional number to n-character string with m frac digits
+: f>n.m ( ncomma nwhole n m -- c-addr len ) \ convert fractional number to n int and m frac digits
   -rot over abs ( ncomma m nwhole n uwhole )
   <#
   \ produce whole number digits
@@ -74,5 +74,12 @@
 
 : .milli ( n -- ) \ print signed int divided by 100 with 2 decimals without following space
   >milli type
+  ;
+
+: c>f ( n -- n ) \ convert celsius to farenheit
+  9 * 5 / 32 + ;
+
+: cC>F ( n -- f ) \ convert hundredths of degrees celsius to farenheit fixed-point
+  0 swap 0,018 f* 0 32 d+ 
   ;
 

@@ -1,5 +1,8 @@
 \ GPS driver
 \ assumes that the GPS is connected to usart2 on PA2&PA3
+\ TX packet format: 
+\   UTC time (HHMMSS A/V flag (bit), lat (int32), lon (int32), knts*1E4 (uint32),
+\   degrees*1E4 (int32), date (DDMMYY), mag var *1E4 (int32)
 
 $8A constant GPRMC \ packet format
 
@@ -8,7 +11,6 @@ $8A constant GPRMC \ packet format
 char * constant STAR
 char $ constant DOLLAR
 200 buffer: line
-0 variable line-ptr
 
 [ifndef] get-key : get-key uart2-key ; [then] \ redefined for tests
 : skip-line ( -- ) begin get-key LF = until ;
@@ -116,8 +118,10 @@ char $ constant DOLLAR
   <pkt
     f3>pkt           \ UTC time
     c>pkt            \ A/V flag
-    [char] S dmf>pkt \ latitude with N/S sign
-    [char] W dmf>pkt \ latitude with E/W sign
+    [char] S f4d>pkt \ latitude with N/S sign ( degrees minutes fractions )
+    [char] W f4d>pkt \ latitude with E/W sign ( degrees minutes fractions )
+\   [char] S dmf>pkt \ latitude with N/S sign ( degrees centi fractions )
+\   [char] W dmf>pkt \ latitude with E/W sign ( degrees centi fractions )
     f4>pkt           \ speed knts
     f4>pkt           \ course made good
     n>pkt            \ date

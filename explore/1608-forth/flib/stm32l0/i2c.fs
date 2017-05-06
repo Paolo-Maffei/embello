@@ -89,7 +89,7 @@ $40005400 constant I2C1
 \   tx=0 rx>0 : START - rx - STOP
 \   tx=0 rx=0 : START - STOP          (used for presence detection)
 
-: i2c-xfer ( u -- nak )
+: i2c-xfer ( rx -- nak )
   0 bit I2C1-CR1 bic!  0 bit I2C1-CR1 bis!  \ toggle PE low to reset
   i2c.ptr @ i2c.buf - ?dup if
     i2c-setn  0 i2c-start  i2c-wr  \ tx>0
