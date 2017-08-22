@@ -21,16 +21,16 @@ The driver performs the transaction using DMA, in order to avoid several issues 
 
 [defs]: <> (i2c-init i2c-addr >i2c i2c-xfer i2c> i2c>h i2c>h_inv i2c-fast i2c-standard i2c. )
 ```
-: i2c-init ( -- )
-: i2c-addr ( u --)
-: >i2c  ( u -- ) \ Queues byte u for transmission over i2c. Use after i2c-addr
-: i2c-xfer ( n -- nak ) \ prepares for reading an nbyte reply.
-: i2c>  ( -- u ) \ Receives 1 byte from i2c. Use after i2c-xfer. Waits.
-: i2c>h ( -- u ) \ Receives 16 bit word from i2c, lsb first.
-: i2c>h_inv ( -- u ) \ Receives 16 bit word from i2c, msb first.
-: i2c-fast
-: i2c-standard
-: i2c. ( -- )  \ scan and report all I2C devices on the bus
+: i2c-init     ( -- )   \ Init and reset I2C. Default to 100 kHz
+: i2c-addr     ( u --)  \ Start a new transaction
+: >i2c         ( u -- ) \ Queues byte u for transmission over i2c. Use after i2c-addr
+: i2c-xfer     ( n -- nak ) \ Prepares for reading an nbyte reply.
+: i2c>         ( -- u ) \ Receives 1 byte from i2c. Use after i2c-xfer. Waits.
+: i2c>h        ( -- u ) \ Receives 16 bit word from i2c, lsb first.
+: i2c>h_inv    ( -- u ) \ Receives 16 bit word from i2c, msb first.
+: i2c-fast     ( -- )   \ Configure I2C for fast mode (~400kHz)
+: i2c-standard ( -- )   \ Configure I2C for Standard Mode (~100kHz)
+: i2c.         ( -- )   \ scan and report all I2C devices on the bus
 ```
 
 ### Constants
