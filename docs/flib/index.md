@@ -16,6 +16,7 @@ using the [docex](https://github.com/jeelabs/embello/tree/master/tools/docex/) t
 | [hal-l0](hal-l0.md) | [hal-f1](hal-f1.md) | [hal-f4](hal-f4.md) | Hardware Abstraction Layer |
 | - | [pwm-f1](pwm-f1.md) | - | Pulse Width Modulation |
 | [sleep-l0](sleep-l0.md) | - | - | Low-power sleep utilities |
+| - | [i2c-f1](i2c-f1.md)  | - | Hardware I2C driver |
 
 | Portable | |
 | --- | --- |
