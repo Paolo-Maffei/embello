@@ -38,4 +38,4 @@ cornerstone eraseflash
 include ../g6u/board.fs
 include ../g6u/core.fs
 
-hexdump
+( enter "hexdump" for a full dump of flash memory... ) space

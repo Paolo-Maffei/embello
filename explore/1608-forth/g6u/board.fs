@@ -16,6 +16,10 @@ compiletoflash
 
 include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
+
+\ deal with a missing definition, needed by adc.fs, possibly others
+[ifndef] RCC-AHBENR  RCC $14 + constant RCC-AHBENR  [then]
+
 include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f1/clock.fs
 include ../flib/stm32f1/io.fs
