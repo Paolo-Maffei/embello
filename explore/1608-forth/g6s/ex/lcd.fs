@@ -1,6 +1,6 @@
 \ driver for 2x16 character LCD
 
-forgetram
+compiletoram? [if]  forgetram  [then]
 
 \ PB0..B7 is the 8-bit LCD character data
 PB8  constant LCD-E
