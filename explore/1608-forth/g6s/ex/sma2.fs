@@ -2,64 +2,101 @@
 
 compiletoram? [if]  forgetram  [then]
 
-0 variable packetNum
-6  buffer: myAddr
-6  buffer: smaAddr
+ 0 variable fcs
+ 0 variable escaped
+ 0 variable pNum
+ 0 variable pFill
+150 buffer: pBuf
+  6 buffer: myAddr
+  6 buffer: smaAddr
 
-: ^1b ( u -- )
-  ;
-: ^2b ( u -- ) dup ^1b 8 rshift ^1b ;
-: ^4b ( u -- ) dup ^2b 16 rshift ^2b ;
-: ^8b ( u1 u2 -- ) swap ^4b ^4b ;
-: ^nb ( p n -- ) 0 ?do dup c@ ^1b 1+ loop drop ;
+: fcsUpdate ( b -- )
+  fcs @ tuck 8 rshift -rot  xor  $FF and  shl fcstab + h@  xor fcs ! ;
 
-: ^m ( -- ) myAddr  6 ^nb ;
-: ^s ( -- ) smaAddr 6 ^nb ;
-: ^f ( -- ) $FFFFFFFF dup ^4b ^2b ;
-: ^z ( -- ) 0 ^4b ;
-: ^x ( -- ) $00020080 ^4b ;
-: ^p ( -- ) $B8B8B8B8 ^4b $88888888 dup ^4b ^4b ;
+: ^byte ( b -- )  pFill @ c!  1 pFill +! ;
+
+: ^1 ( u -- )
+  escaped @ if
+    dup fcsUpdate
+    dup case
+      $7D of 1 endof
+      $7E of 1 endof
+      $11 of 1 endof
+      $12 of 1 endof
+      $13 of 1 endof
+             0
+    endcase
+    if $7D ^byte $20 xor then
+  then ^byte ;
+
+: ^2 ( u -- )  dup ^1 8 rshift ^1 ;
+: ^4 ( u -- )  dup ^2 16 rshift ^2 ;
+: ^8 ( u1 u2 -- )  swap ^4 ^4 ;
+: ^n ( p n -- )  0 ?do dup c@ ^1 1+ loop drop ;
+
+: ^m ( -- )  myAddr  6 ^n ;
+: ^s ( -- )  smaAddr 6 ^n ;
+: ^f ( -- )  $FFFFFFFF dup ^4 ^2 ;
+: ^z ( -- )  0 ^4 ;
+: ^x ( -- )  $00020080 ^4 ;
+: ^p ( -- )  $B8B8B8B8 ^4 $88888888 dup ^8 ;
 
 : ^/ ( n1 n2 n3 -- )
+  $0001 ^2 $7E ^1
+  true escaped !
+  $656003FF ^4 ^2 ^f ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ^4
+  pNum @ ^1 ;
+
+: emitPacket ( -- )
   ;
 
 : expect ( n -- f )
   ;
 
 : start ( -- )
-  ;
+  false escaped !
+  $FFFF fcs !
+  pBuf pFill !
+  $007E ^4 ;
 
 : sendPacket ( -- )
-  ;
+  escaped @ if
+    false escaped !
+    fcs @ not ^2
+    $7E ^1
+  then
+  emitPacket ;
+
 : sendAndWait ( -- )
-  ;
+  \ ...
+  1 pNum +! ;
 
 : smaLogin ( -- n )
   $0002 expect not if 1 exit then
   \ copy smaAddr from returned data
-  start ^m ^s $04000002 ^4b $0070 ^2b ( ??? ) ^1b ^z $00000001 ^4b sendPacket
+  start ^m ^s $04000002 ^4 $0070 ^2 ( ??? ) ^1 ^z $00000001 ^4 sendPacket
   $000A expect not if 2 exit then
   $0005 expect not if 2 exit then
-  start ^m ^f $00 $0000 $A009 ^/ ^x $00 ^1b ^z ^z sendAndWait
-  start ^m ^f $03 $0300 $A008 ^/ $FD010E80 $FFFFFFFF ^8b $FF ^1b sendPacket
-  1 packetNum +!
-  start ^m ^f $01 $0100 $A00E ^/ $FD040C80 $000007FF ^8b
-                                 $00038400 $BBAAAA00 ^8b $00 ^1b
+  start ^m ^f $00 $0000 $A009 ^/ ^x $00 ^1 ^z ^z sendAndWait
+  start ^m ^f $03 $0300 $A008 ^/ $FD010E80 $FFFFFFFF ^8 $FF ^1 sendPacket
+  1 pNum +!
+  start ^m ^f $01 $0100 $A00E ^/ $FD040C80 $000007FF ^8
+                                 $00038400 $BBAAAA00 ^8 $00 ^1
                                  ^z ^p sendAndWait
   0 ;
 
+: smaPower ( -- n )
+  start ^m ^f $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8 $0E ^1 sendAndWait
+  33333 ( ??? ) ;
+
 : smaYield ( -- n )
-  start ^m ^f $00 $0000 $A009 ^/ $26220054 $2622FF00 ^8b $00 ^1b sendAndWait
+  start ^m ^f $00 $0000 $A009 ^/ $26220054 $2622FF00 ^8 $00 ^1 sendAndWait
   \ copy result to ptime
   11111 ( ??? ) ;
 
 : smaTotal ( -- n )
-  start ^m ^f $00 $0000 $A009 ^/ $26010054 $2622FF00 ^8b $00 ^1b sendAndWait
+  start ^m ^f $00 $0000 $A009 ^/ $26010054 $2622FF00 ^8 $00 ^1 sendAndWait
   22222 ( ??? ) ;
-
-: smapower ( -- n )
-  start ^m ^f $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8b $0E ^1b sendAndWait
-  33333 ( ??? ) ;
 
 : try
   false bt-init
