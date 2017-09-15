@@ -6,6 +6,7 @@ compiletoram? [if]  forgetram  [then]
  0 variable escaped
  0 variable pNum
  0 variable pFill
+
 150 buffer: pBuf
   6 buffer: myAddr
   6 buffer: smaAddr
@@ -47,11 +48,10 @@ compiletoram? [if]  forgetram  [then]
   $656003FF ^4 ^2 ^f ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ^4
   pNum @ ^1 ;
 
-: emitPacket ( -- )
-  ;
-
-: expect ( n -- f )
-  ;
+: emitFinal ( -- )
+  pFill @ pBuf @ - pBuf @ 1+ c!  \ pBuf[1] = pFill - pBuf
+  pBuf @ h@ dup 8 lshift xor  pBuf @ 3 + c!  \ pBuf[3] = pBuf[0] ^ pBuf[1]
+  pFill @ pBuf @ do i c@ uart-emit loop ;
 
 : start ( -- )
   false escaped !
@@ -65,7 +65,10 @@ compiletoram? [if]  forgetram  [then]
     fcs @ not ^2
     $7E ^1
   then
-  emitPacket ;
+  emitFinal ;
+
+: expect ( n -- f )
+  ;
 
 : sendAndWait ( -- )
   \ ...
