@@ -22,7 +22,7 @@ PB10 constant LCD-RS
 : lcd-2nd ( -- ) $C0 0 lcd-send ;
 
 : lcd-s. ( addr len -- )
-  0 do dup c@ lcd-emit 1+ loop drop ;
+  0 ?do dup c@ lcd-emit 1+ loop drop ;
 
 : init-display
   jtag-deinit  \ disable JTAG on PB3 PB4 PA15
