@@ -2,6 +2,7 @@
 
 compiletoram? [if]  forgetram  [then]
 
+ 0 variable debug
  0 variable fcs
  0 variable escaped
  0 variable pNum
@@ -12,13 +13,9 @@ compiletoram? [if]  forgetram  [then]
 
 $2013 $10220486 2variable myAddr
 
-\ myAddr 6 dump
-\ smaAddr 6 dump
-
 : fcsUpdate ( b -- )
 \ fcsCheck = (fcsCheck >> 8) ^ fcstab[(byte) fcsCheck ^ b];
   fcs @ xor $FF and  shl fcstab + h@  fcs @ 8 rshift  xor fcs ! ;
-\ fcs @ tuck 8 rshift -rot  xor  $FF and  shl fcstab + h@  xor fcs ! ;
 
 : ^byte ( b -- )  \ append byte to packet buffer
   pFill @ c!  1 pFill +! ;
@@ -30,7 +27,7 @@ $2013 $10220486 2variable myAddr
 : readPacket ( -- )
   \ TODO ignore $FF counts!
   begin  pBuf pFill !  ?b $7E = until
-  ?b  ." P:" dup .
+  ?b  debug @ if ." P:" dup . then
   dup $FF = if
     pbuf 150 $AA fill  \ not a valid packet
   else
@@ -61,7 +58,7 @@ $2013 $10220486 2variable myAddr
   pBuf pBuf 1+ c@ dump ;
 
 : expect ( n -- f )
-  readPacket#  pType = ;
+  debug @ if readPacket# else readPacket then pType = ;
 
 : ^1 ( u -- )
   escaped @ if
@@ -89,50 +86,23 @@ $2013 $10220486 2variable myAddr
 : ^x ( -- )  $00020080 ^4 ;
 : ^p ( -- )  $B8B8B8B8 ^4 $88888888 dup ^8 ;
 
-: ^/ ( n1 n2 n3 -- )
-\ emitInt(0x0001, 2);
-\ emitOne(0x7E);
-\ escaped = true;
-\ emitInt(0x656003FFL, 4);
-\ emitInt(va_arg(ap, int), 2);
-\ emitBytes(allffs, 6);
-\ emitInt(va_arg(ap, int), 2);
-\ byte fakeAddr[] = { 0x5C,0xAF,0xF0,0x1D,0x50,0x00 };
-\ emitBytes(fakeAddr, 6);
-\ emitOne(0x00);
-\ emitOne(va_arg(ap, int));
-\ emitInt(0L, 4);
-\ emitOne(packetNum);
-  $0001 ^2 $7E ^1
-  true escaped !
-  $656003FF ^4 ( n3 ) ^2 ^f ( n2 ) ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ( n1 ) ^1
-  ^z pNum @ ^1 ;
-
-\ 7E3D0043860422101320FFFFFFFFFFFF
-\ 0100
-\ 7E
-\ FF036065
-\ 09A0
-\ FFFFFFFFFFFF
-\ 0000
-\ 5CAFF01D5000
-\ 00
-\ 00
-\ 00000000
-\ 80
-\ 00020000000000000000000025DF7E
-
-: emitFinal ( -- )
-  pFill @ pBuf - pBuf 1+ c!  \ pBuf[1] = pFill - pBuf
-  pBuf h@ dup 8 rshift xor  pBuf 3 + c!  \ pBuf[3] = pBuf[0] ^ pBuf[1]
-  ." emit:" pFill @ pBuf do i c@ h.2 loop cr
-  pFill @ pBuf do i c@ uart-emit loop ;
-
 : start ( -- )
   $FFFF fcs !
   pBuf pFill !
   false escaped !
   $007E ^4 ;
+
+: ^/ ( n1 n2 n3 -- )
+  start ^m ^s $0001 ^2 $7E ^1
+  true escaped !
+  $656003FF ^4 ( n3 ) ^2 ^f ( n2 ) ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ( n1 ) ^1
+  ^z pNum @ ^1 ;
+
+: emitFinal ( -- )
+  pFill @ pBuf - pBuf 1+ c!  \ pBuf[1] = pFill - pBuf
+  pBuf h@ dup 8 rshift xor  pBuf 3 + c!  \ pBuf[3] = pBuf[0] ^ pBuf[1]
+  debug @ if ." emit:" pFill @ pBuf do i c@ h.2 loop cr then
+  pFill @ pBuf do i c@ uart-emit loop ;
 
 : sendPacket ( -- )
   escaped @ if
@@ -142,68 +112,59 @@ $2013 $10220486 2variable myAddr
   then
   emitFinal ;
 
+: sendAndCheck ( -- 0 | n 1 )
+  sendPacket
+  $0001 expect  pBuf 45 + c@ pNum c@ =  and
+  dup if
+    1 pNum +!
+    67 pBuf + @ swap  \ not word-aligned !
+  then ;
+
 : smaLogin ( -- n )
   0 pNum !
   $0002 expect not if 1 exit then
   pBuf 4 + smaAddr 6 move
   pBuf 22 + c@ ( seq# ? )
-  1001 .
   start ^m ^s $04000002 ^4 $0070 ^2 ^1 ^z $00000001 ^4  sendPacket
   $000A expect not if 2 exit then
   begin $0005 expect until
-  1002 .
   begin
-    start ^m ^f $00 $0000 $A009 ^/ ^x $00 ^1 ^z ^z  sendPacket
+    $00 $0000 $A009 ^/ ^x $00 ^1 ^z ^z  sendPacket
   $0001 expect  pBuf 45 + c@ pNum c@ =  and until
   1 pNum +!
-  1003 .
-  start ^m ^f $03 $0300 $A008 ^/ $FD010E80 $FFFFFFFF ^8 $FF ^1 sendPacket
+  $03 $0300 $A008 ^/ $FD010E80 $FFFFFFFF ^8 $FF ^1 sendPacket
   1 pNum +!
-  1004 .
   begin
-    start ^m ^f $01 $0100 $A00E ^/ $FD040C80 $000007FF ^8
-                                   $00038400 $BBAAAA00 ^8 $00 ^1
-                                   ^z ^p sendPacket
-  $0001 expect  pBuf 45 + c@ pNum c@ =  and until
-  1 pNum +!
-  1005 .
-  0 ;
-
- 0 variable result
-
-: copyResult ( -- )  67 pBuf + result 4 move result @ ;
+    $01 $0100 $A00E ^/ $FD040C80 $000007FF ^8
+                       $00038400 $BBAAAA00 ^8 $00 ^1 ^z ^p
+  sendAndCheck until
+  drop 0 ;
 
 : smaPower ( -- n )
 \ sendAndWait(PSTR("$m $f / $x 51003F2600FF3F26000E"), 0xA109, 0, 0);
   begin
-    start ^m ^f $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8 $0E00 ^2 sendPacket
-  $0001 expect  pBuf 45 + c@ pNum c@ =  and until
-  1 pNum +!
-  copyResult ;
+    $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8 $0E00 ^2
+  sendAndCheck until ;
 
 : smaYield ( -- n )
 \ sendAndWait(PSTR("$m $f / $x 5400222600FF222600"), 0xA009, 0, 0);
   begin
-    start ^m ^f $00 $0000 $A009 ^/ ^x $26220054 $2622FF00 ^8 $00 ^1 sendPacket
-  $0001 expect  pBuf 45 + c@ pNum c@ =  and until
-  1 pNum +!
-  copyResult ;
+    $00 $0000 $A009 ^/ ^x $26220054 $2622FF00 ^8 $00 ^1
+  sendAndCheck until ;
 
 : smaTotal ( -- n )
 \ sendAndWait(PSTR("$m $s / $x 5400012600FF012600"), 0xA009, 0, 0);
   begin
-    start ^m ^s $00 $0000 $A009 ^/ ^x $26010054 $2601FF00 ^8 $00 ^1 sendPacket
-  $0001 expect  pBuf 45 + c@ pNum c@ =  and until
-  1 pNum +!
-  copyResult ;
+    $00 $0000 $A009 ^/ ^x $26010054 $2601FF00 ^8 $00 ^1
+  sendAndCheck until ;
 
 : try
-  cr false bt-init
-\ readPacket#
-  cr smaLogin ." login: " .
-  cr smaYield ." yield: " .
-  cr smaTotal ." total: " .
-  cr smaPower ." power: " .
+  cr millis  false bt-init ." ini "         millis swap - . ." ms"
+  cr millis  smaLogin ." login: " .         millis swap - . ." ms"
+  cr millis  smaPower ." power: " . ." W, " millis swap - . ." ms"
+  cr millis  smaYield ." yield: " . ." W, " millis swap - . ." ms"
+  cr millis  smaTotal ." total: " . ." W, " millis swap - . ." ms"
+  cr
   BT-RESET ioc! ;
 
 \ 1234 ms try
