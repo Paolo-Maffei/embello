@@ -117,7 +117,7 @@ $2013 $10220486 2variable myAddr
   $0001 expect  pBuf 45 + c@ pNum c@ =  and
   dup if
     1 pNum +!
-    67 pBuf + @ swap  \ not word-aligned !
+    67 pBuf + @ 0 max swap  \ not word-aligned !
   then ;
 
 : smaLogin ( -- n )
