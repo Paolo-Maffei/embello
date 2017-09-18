@@ -171,19 +171,20 @@ $2013 $10220486 2variable myAddr
 
  0 variable result
 
-: copyResult ( -- )  pBuf 67 + result 4 move ;
+: copyResult ( -- )  67 pBuf + result 4 move result @ ;
 
 : smaPower ( -- n )
 \ sendAndWait(PSTR("$m $f / $x 51003F2600FF3F26000E"), 0xA109, 0, 0);
   begin
-    start ^m ^f $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8 $0E ^1 sendPacket
+    start ^m ^f $00 $0000 $A109 ^/ ^x $263F0051 $263FFF00 ^8 $0E00 ^2 sendPacket
   $0001 expect  pBuf 45 + c@ pNum c@ =  and until
   1 pNum +!
   copyResult ;
 
 : smaYield ( -- n )
+\ sendAndWait(PSTR("$m $f / $x 5400222600FF222600"), 0xA009, 0, 0);
   begin
-    start ^m ^f $00 $0000 $A009 ^/ $26220054 $2622FF00 ^8 $00 ^1 sendPacket
+    start ^m ^f $00 $0000 $A009 ^/ ^x $26220054 $2622FF00 ^8 $00 ^1 sendPacket
   $0001 expect  pBuf 45 + c@ pNum c@ =  and until
   1 pNum +!
   copyResult ;
@@ -191,7 +192,7 @@ $2013 $10220486 2variable myAddr
 : smaTotal ( -- n )
 \ sendAndWait(PSTR("$m $s / $x 5400012600FF012600"), 0xA009, 0, 0);
   begin
-    start ^m ^f $00 $0000 $A009 ^/ $26010054 $2622FF00 ^8 $00 ^1 sendPacket
+    start ^m ^s $00 $0000 $A009 ^/ ^x $26010054 $2601FF00 ^8 $00 ^1 sendPacket
   $0001 expect  pBuf 45 + c@ pNum c@ =  and until
   1 pNum +!
   copyResult ;
@@ -199,10 +200,10 @@ $2013 $10220486 2variable myAddr
 : try
   cr false bt-init
 \ readPacket#
-  cr smaLogin ." login:" .
-  cr smaPower ." power: " result h@ .
-  cr smaYield ." yield: " result h@ .
-  cr smaTotal ." total: " result @ .
+  cr smaLogin ." login: " .
+  cr smaYield ." yield: " .
+  cr smaTotal ." total: " .
+  cr smaPower ." power: " .
   BT-RESET ioc! ;
 
 \ 1234 ms try
