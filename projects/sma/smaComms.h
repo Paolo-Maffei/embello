@@ -189,6 +189,19 @@ static void sendPacket (const char* fmt, ...) {
         }
         break;
 
+// 7E3D0043860422101320FFFFFFFFFFFF
+// 0100
+// 7E
+// FF036065
+// 09A0
+// FFFFFFFFFFFF
+// 0000
+// 5CAFF01D5000
+// 00
+// 00
+// 00000000
+// 80
+// 00020000000000000000000025DF7E
       case '/':
         emitInt(0x0001, 2);
         emitOne(0x7E);

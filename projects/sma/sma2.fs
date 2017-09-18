@@ -105,8 +105,22 @@ $2013 $10220486 2variable myAddr
 \ emitOne(packetNum);
   $0001 ^2 $7E ^1
   true escaped !
-  $656003FF ^4 ( n3 ) ^2 ^f ( n2 ) ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ( n1 ) ^4
-  pNum @ ^1 ;
+  $656003FF ^4 ( n3 ) ^2 ^f ( n2 ) ^2  $1DF0AF5C ^4 $0050 ^2  $00 ^1 ( n1 ) ^1
+  ^z pNum @ ^1 ;
+
+\ 7E3D0043860422101320FFFFFFFFFFFF
+\ 0100
+\ 7E
+\ FF036065
+\ 09A0
+\ FFFFFFFFFFFF
+\ 0000
+\ 5CAFF01D5000
+\ 00
+\ 00
+\ 00000000
+\ 80
+\ 00020000000000000000000025DF7E
 
 : emitFinal ( -- )
   pFill @ pBuf - pBuf 1+ c!  \ pBuf[1] = pFill - pBuf
