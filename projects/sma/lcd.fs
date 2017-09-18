@@ -48,4 +48,4 @@ PB10 constant LCD-RS
   lcd-clear s" Hello, world!"    lcd-s.
   lcd-2nd   s"    So what's up?" lcd-s. ;
 
-lcd-demo
+\ lcd-demo
