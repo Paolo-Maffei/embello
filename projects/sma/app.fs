@@ -20,7 +20,7 @@ $40003000 constant IWDG
 : wdog-init ( -- )  \ start the watchdog
   begin IWDG-SR c@ 0= until
   $5555 IWDG-KR !     5 IWDG-PR  !  \ 3.2 .. 13,107.2 ms
-  $5555 IWDG-KR !  3749 IWDG-RLR !  \ 12,000 ms
+  $5555 IWDG-KR !  4095 IWDG-RLR !  \ max cycle time
   $CCCC IWDG-KR ! ;
 
 : wdog? ( -- f )  \ true if IWDG caused a reset (flag is cleared once called)
@@ -65,24 +65,36 @@ $40003000 constant IWDG
   smaLogin if
     [char] L lcd-msg
   else
+    PB0 ioc!  \ LED on
     smaPower 0 max  power !
     smaYield        yield !
     smaTotal 1000 / total !
     show-values
+    PB0 ios!  \ LED off
   then
   BT-RESET ioc! ;
 
-: main ( -- )  \ will do a reset if loop doesn't cycle in under 12s
+: main ( -- )  \ will do a reset if loop doesn't cycle in under 13.1s
   wdog-init app-init cr
-  \ processing normally takes 3s, so the cycle time will be approx 10s
+  \ processing normally takes 3s, so the cycle time will be approx 8s
 \ wdog-init exit
   begin
     wdog-inhibit
     process
-    7000 ms
+    5000 ms
   again ;
 
 \ this is a way to nullify the watchdog once started:
 \   ' wdog-inhibit hook-pause !
 
-\ : init init unattended main ;
+: rx-connected? ( -- f )  \ true if RX is connected (and idle)
+  IMODE-PULL PA10 io-mode!  PA10 ioc!  10 ms  PA10 io@  PA10 ios!  10 ms
+  serial-key? if serial-key drop then  \ flush any input noise
+;
+
+\ unattended quits to the interpreter if the RX pin is connected, not floating
+\ for use with a turnkey app in flash, i.e. ": init init unattended ... ;"
+
+: unattended ( -- ) rx-connected? if quit then ;
+
+: init init unattended main ;

@@ -5,10 +5,10 @@ compiletoram? [if]  forgetram  [then]
 PA0 constant BT-KEY
 PA1 constant BT-RESET
 
-[ifndef] uart2-init
-include ../../flib/any/ring.fs
-include ../../flib/stm32f1/uart2.fs
-include ../../flib/stm32f1/uart2-irq.fs
+[ifndef] uart-irq-init
+include ../../explore/1608-forth/flib/any/ring.fs
+include ../../explore/1608-forth/flib/stm32f1/uart2.fs
+include ../../explore/1608-forth/flib/stm32f1/uart2-irq.fs
 [then]
 
 : uart-s. ( addr len -- )
