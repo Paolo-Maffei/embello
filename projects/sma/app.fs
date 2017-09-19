@@ -1,4 +1,5 @@
-\ SMA 5000TL solar inverter readout gadget
+\ SMA 5000TL solar inverter readout gadget, reads via Bluetooth, display on LCD
+\ -jcw, 2019-09-19
 
 compiletoram? [if]  forgetram  [then]
 

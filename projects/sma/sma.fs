@@ -1,4 +1,5 @@
-\ access HC05 Bluetooth module via UART2, for use with SMA solar inverter
+\ access HC05 Bluetooth module via UART2, for use with SMA inverter - part 1/2
+\ -jcw, 2019-09-19
 
 compiletoram? [if]  forgetram  [then]
 
