@@ -44,7 +44,7 @@ $40003000 constant IWDG
   else
 \   lcd-clear s" Hello, world!   " lcd-s.
 \   lcd-2nd   s"    So what's up?" lcd-s.
-    lcd-clear s" Altijd is er zon" lcd-s.
+    lcd-clear s" Altijd volop zon" lcd-s.
     lcd-2nd   s" bij Sjaak & Loes" lcd-s.
   then ;
 
