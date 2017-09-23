@@ -6,7 +6,8 @@ compiletoflash
 
 ( board start: ) here dup hex.
 
-4 constant io-ports  \ A..D
+4  constant io-ports  \ A..D
+50 constant I2C.DELAY
 
 include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
