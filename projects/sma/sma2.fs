@@ -12,8 +12,6 @@ compiletoram? [if]  forgetram  [then]
 150 buffer: pBuf
   6 buffer: smaAddr
 
-$2013 $10220486 2variable myAddr
-
 : fcsUpdate ( b -- )
 \ fcsCheck = (fcsCheck >> 8) ^ fcstab[(byte) fcsCheck ^ b];
   fcs @ xor $FF and  shl fcstab + h@  fcs @ 8 rshift  xor fcs ! ;
@@ -80,7 +78,7 @@ $2013 $10220486 2variable myAddr
 : ^8 ( u1 u2 -- )  swap ^4 ^4 ;
 : ^n ( p n -- )  0 ?do dup c@ ^1 1+ loop drop ;
 
-: ^m ( -- )  myAddr  6 ^n ;
+: ^m ( -- )  hisAddr-bin  6 ^n ;
 : ^s ( -- )  smaAddr 6 ^n ;
 : ^f ( -- )  $FFFFFFFF dup ^4 ^2 ;
 : ^z ( -- )  0 ^4 ;

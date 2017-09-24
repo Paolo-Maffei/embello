@@ -12,8 +12,17 @@ include ../../explore/1608-forth/flib/stm32f1/uart2.fs
 include ../../explore/1608-forth/flib/stm32f1/uart2-irq.fs
 [then]
 
+include config.fs
+
 : uart-s. ( addr len -- )
-  0 ?do dup c@ uart-emit 1+ loop drop ;
+  0 ?do
+    dup c@ [char] % = if
+      myAddr-str recurse  \ expand % by sending myAddr-str
+    else
+      dup c@ uart-emit
+    then
+    1+
+  loop drop ;
 
 : uart-cr ( -- ) $0D uart-emit  $0A uart-emit ;
 
@@ -48,30 +57,30 @@ include ../../explore/1608-forth/flib/stm32f1/uart2-irq.fs
 
 : bt-pair
   true bt-init
-  10 . s" "                      at-show
-  11 . s" +VERSION?"             at-show
-  12 . s" +ORGL"                 at-show
-  13 . s" +NAME=SMA_SOLAR"       at-show
-  14 . s" +PSWD=0000"            at-show
-  15 . s" +ROLE=1"               at-show
-  16 . s" +RMAAD"                at-show
-  17 . s" +UART=38400,0,0"       at-show
-  18 . s" +CMODE=1"              at-show
-  19 . s" +INIT"                 at-show
-  20 . s" +STATE?"               at-show
-  21 . s" +IAC=9e8b33"           at-show
-  22 . s" +CLASS=1F04"           at-show
-  23 . s" +INQM=1,1,10"          at-show
-  24 . s" +INQ"                  at-show long-listen
-  25 . s" +RNAME?80,25,A4EC14"   at-show long-listen
-  26 . s" +PAIR=80,25,A4EC14,20" at-show
-  27 . s" +FSAD=80,25,A4EC14"    at-show
-  28 . s" +ADDR?"                at-show long-listen
-  29 . s" +MRAD?"                at-show long-listen
-  30 . s" +BIND=80,25,A4EC14"    at-show
-  31 . s" +CMODE=0"              at-show
-  32 . s" +STATE?"               at-show
-\ 33 . s" +RESET"                at-show
+  10 . s" "                at-show
+  11 . s" +VERSION?"       at-show
+  12 . s" +ORGL"           at-show
+  13 . s" +NAME=SMA_SOLAR" at-show
+  14 . s" +PSWD=0000"      at-show
+  15 . s" +ROLE=1"         at-show
+  16 . s" +RMAAD"          at-show
+  17 . s" +UART=38400,0,0" at-show
+  18 . s" +CMODE=1"        at-show
+  19 . s" +INIT"           at-show
+  20 . s" +STATE?"         at-show
+  21 . s" +IAC=9e8b33"     at-show
+  22 . s" +CLASS=1F04"     at-show
+  23 . s" +INQM=1,1,10"    at-show
+  24 . s" +INQ"            at-show long-listen
+  25 . s" +RNAME?%"        at-show long-listen
+  26 . s" +PAIR=%,20"      at-show long-listen
+  27 . s" +FSAD=%"         at-show
+  28 . s" +ADDR?"          at-show long-listen
+  29 . s" +MRAD?"          at-show long-listen
+  30 . s" +BIND=%"         at-show
+  31 . s" +CMODE=0"        at-show
+  32 . s" +STATE?"         at-show
+\ 33 . s" +RESET"          at-show
   BT-RESET ioc! ;
 
 \ the following was ported from this just-as-incomprehensible C code in JeeLib:
@@ -113,3 +122,5 @@ hex
   $F78F h, $E606 h, $D49D h, $C514 h, $B1AB h, $A022 h, $92B9 h, $8330 h,
   $7BC7 h, $6A4E h, $58D5 h, $495C h, $3DE3 h, $2C6A h, $1EF1 h, $0F78 h,
 decimal
+
+\ continued in sma2.fs ...
