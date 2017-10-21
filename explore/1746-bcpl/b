@@ -21,8 +21,8 @@ py=`type -P pypy || echo python`
 objs=()
 
 for src in "$@"; do
-    $py pyint.py pass1 <$src || echo "compilation error in $src"
-    $py pyint.py pass2 <OCODE || echo "codegen error in $src"
+    $py interp.py pass1 <$src || echo "compilation error in $src"
+    $py interp.py pass2 <OCODE || echo "codegen error in $src"
     mv INTCODE ${src%.b}.i
     rm OCODE
     objs=(${objs[@]} ${src%.b}.i)
@@ -30,6 +30,6 @@ done
 
 if [ -z "$sep" ]; then
     cat ${objs[@]} run-time.i | \
-        python pyasm.py $out || echo "assembly error in $src"
+        python assem.py $out || echo "assembly error in $src"
     rm ${objs[@]}
 fi

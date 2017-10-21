@@ -6,4 +6,4 @@ exe=${1:-EXCODE}
 # use pypy iso python if it's available
 py=`type -P pypy || echo python`
 
-$py pyint.py $exe
+$py interp.py $exe
