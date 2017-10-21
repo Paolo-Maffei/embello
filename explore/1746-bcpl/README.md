@@ -15,11 +15,11 @@ The assembler-linker and the interpreter are modeled after the original `icint`
 code in C, but have been completely re-written from scratch in Python.
 
 The files in this area are sufficient to compile and run arbitrary source code
-programs written in traditional BCPL (`$(` + `$)` instead of `{` + `}`, for
-example).  In addition, all the original sources are included to re-build both
-the BCPL compiler and the runtime library from scratch, as long as you are
-careful not to lose a set of properly-working files, i.e. `pass`, `pass2`, and
-`run-time.i`.
+programs written in traditional BCPL (using `$(` + `$)` instead of `{` + `}`,
+for example).  In addition, all the original sources are included to re-build
+both the BCPL compiler and the runtime library from scratch, as long as you are
+careful not to break the core set of properly-working files, i.e.  `pass1`,
+`pass2`, and `run-time.i`.
 
 Two shell scripts simplify day-to-day use of this system:
 
