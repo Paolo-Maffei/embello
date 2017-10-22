@@ -15,11 +15,14 @@ $08080000 constant EE-BASE
     $89ABCDEF FLASH-PEKEYR !
     $02030405 FLASH-PEKEYR !
   then
-  FLASH-PECR @ hex.
   !
   begin FLASH-SR @ %1 and 0= until
   %1 FLASH-PECR bis!
 ;
+
+EE-BASE 16 dump
+
+$55667788 EE-BASE 8 + ee!
 
 EE-BASE 16 dump
 
