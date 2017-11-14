@@ -44,7 +44,7 @@ hand-written glue code):
     ./b -c blib.b && cat blib.i iclib.i >run-time.i
 
 You can read the [TFoC - A compiler in 256
-LoC](http://localhost:1313/2017/11/tfoc---a-compiler-in-256-loc/) post on the
+LoC](https://jeelabs.org/2017/11/tfoc---a-compiler-in-256-loc/) post on the
 JeeLabs weblog for further details.
 
 -jcw, 2017-10-21
