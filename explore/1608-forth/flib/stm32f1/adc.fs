@@ -76,4 +76,4 @@ $40020000 constant DMA1
         ADC1-CR2 ! ;
 
 : adc-vcc ( -- mv )  \ return estimated Vcc, based on 1.2V internal bandgap
-  3300 1200  17 ADC1-SQR3 !  adc-once  */ ;
+  4096 1200  17 ADC1-SQR3 !  adc-once  */ ;
