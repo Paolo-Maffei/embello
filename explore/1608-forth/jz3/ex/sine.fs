@@ -19,7 +19,7 @@ $40020000 constant DMA
 : dac-init ( -- )
   29 bit RCC-APB1ENR bis!  \ DACEN clock enable
   IMODE-ADC PA4 io-mode!   \ set pin to analog mode
-  1 DAC-CR !		   \ enable DAC
+  1 DAC-CR !               \ enable DAC
 ;
 
 : dac-dma ( addr count -- )  \ feed DAC from wave table at given address
@@ -44,7 +44,7 @@ $40020000 constant DMA
 ;
 
 : dac-awg ( u -- )  \ generate on DAC1 via DMA with given timer period in us
-  16 * \ clock frequency
-  6 timer-init  dac-init  SINE1000 2000 dac-dma ;
+  clock-hz @ 500000 */ 1-  \ convert ms cycle time to per-sample clock ticks
+  6 timer-init  dac-init  SINE500 1000 dac-dma ;
 
-20 dac-awg  \ 20 µs x 1000 = 20 ms = 50 Hz sine wave
+20 dac-awg  \ 20 ms = 50 Hz sine wave

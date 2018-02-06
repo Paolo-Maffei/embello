@@ -4,7 +4,7 @@
 import math
 import textwrap
 
-N = 1000  # entries
+N = 500  # entries
 M = 3800  # max value, slight less than full 12-bit range
 O = 2048  # offset
 
