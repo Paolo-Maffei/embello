@@ -5,8 +5,8 @@ forgetram
 \ sd-mount.
 \ ls
 
-8192 buffer: mem       \ simulated memory
-ROM mem ROM-SIZE move  \ initial contents
+8192 buffer: mem       \ simulated memory, 4 Kw
+ROM mem ROM-SIZE move  \ fill with initial contents
 
 0 variable ac.r
 0 variable pc.r
@@ -16,8 +16,9 @@ ROM mem ROM-SIZE move  \ initial contents
 : octal ( --) #8 base ! ;  octal  \ switch to octal mode from here on down
 : o.4 ( u -- ) base @ octal swap  u.4  base ! ;
 
-: m@ ( u -- u )  shl mem + h@ ;
+: m@ ( u -- u )    shl mem + h@ ;
 : m! ( u1 u2 -- )  shl mem + h! ;
+
 : ac  ( -- u )  ac.r @ ;
 : ac! ( u -- )  ac.r ! ;
 : pc  ( -- u )  pc.r @ ;
@@ -31,12 +32,9 @@ ROM mem ROM-SIZE move  \ initial contents
 
 : addr ( u -- u )
   dup 0177 and  ( ir ac )  \ immediate
-  over 0200 and if
-    pc 1- 7600 and or  \ page-relative
-  then
+  over 0200 and if pc 1- 7600 and or then  \ page-rel
   swap 0400 and if
-    dup 7770 and 0010 = if dup m@ 1+w over m! then  \ auto-inc
-    m@  \ indirect
+    dup 7770 and 0010 = if dup m@ 1+w over m! then  m@  \ auto-inc, indirect
   then ;
 
 : op0 ( u -- ) addr m@  10000 or  ac and ac! ;                  \ AND
@@ -49,11 +47,11 @@ ROM mem ROM-SIZE move  \ initial contents
 : op6 ( u -- )  \ IOT
     dup  3 rshift 077 and case
       03 of dup 1 and if key? if ++pc then then  \ skip if input ready
-                4 and if key? if key else 0 then ac keepl or ac! then  \ rdch
+            dup 4 and if key? if key else 0 then ac keepl or ac! then  \ rdch
       endof
-      04 of dup 1 and if ++pc then  \ skip if output ready
+      04 of dup 1 and if ++pc then  \ skip, output always ready
             dup 4 and if ac 0177 and emit then  \ wrch
-                2 and if ac keepl ac! then  \ clear flag
+            dup 2 and if ac keepl ac! then  \ clear flag
       endof
     endcase  drop ;
 
@@ -79,7 +77,7 @@ ROM mem ROM-SIZE move  \ initial contents
   over 0040 and if ac maskw 0=  if shr then then  \ SZA, SNA
   over 0020 and if ac maskl     if shr then then  \ SNL, SZL
   over 0010 and if                 1 xor    then  \ reverse
-  0= if ++pc then  \ skip if above condition is met
+  if ++pc then  \ skip if above condition is met
   dup 0200 and if ac keepl     ac! then  \ CLA
   dup 0004 and if ac sr.r @ or ac! then  \ OSR
       0002 and if cr ." HALT" quit then  \ HLT
@@ -108,7 +106,8 @@ decimal
 
 : run
   100000 0 do
-    \ cr ." pc " pc o.4 ." : " pc m@ o.4 ."  ac " ac o.4 space
+    \ cr ." pc " pc o.4 ." : " pc m@ o.4
+    \    ."  l " ac #12 rshift . ." ac " ac o.4 space
     cycle
   loop ;
 
