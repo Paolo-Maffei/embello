@@ -1,9 +1,9 @@
 \ SD Card interface using SPI w/ FAT access
 \ uses spi
 
-: sd-slow ( -- )
-  [ifdef] SPI1-CR1  SPI1-CR1 @  %111000 or  SPI1-CR1 ! [then]  \ clk/256
-;
+[ifndef] sd-slow
+: sd-slow ( -- ) SPI1-CR1  SPI1-CR1 @  %111000 or  SPI1-CR1 ! ;  \ clk/256
+[then]
 
 : sd-wait ( -- )  begin $FF >spi> ( dup . ) $FF = until ;
 
