@@ -27,10 +27,11 @@ $40013000 constant SPI1
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
 : spi-init ( -- )  \ set up hardware SPI
-  OMODE-PP ssel @ io-mode! -spi
-  OMODE-AF-PP SCLK io-mode!
-  IMODE-FLOAT MISO io-mode!
-  OMODE-AF-PP MOSI io-mode!
+  OMODE-PP    ssel @ io-mode! -spi
+  OMODE-AF-PP SCLK   io-mode!
+  IMODE-FLOAT MISO   io-mode!
+  OMODE-AF-PP MOSI   io-mode!
+
   12 bit RCC-APB2ENR bis!  \ set SPI1EN
   %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
   SPI1-SR @ drop  \ appears to be needed to avoid hang in some cases

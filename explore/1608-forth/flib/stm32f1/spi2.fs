@@ -27,12 +27,13 @@ $40003800 constant SPI2
 : >spi2 ( c -- ) >spi2> drop ;  \ write byte to SPI
 
 : spi2-init ( -- )  \ set up hardware SPI
-  OMODE-PP ssel2 @ io-mode! -spi2
-  OMODE-AF-PP SCLK2 io-mode!
-  IMODE-FLOAT MISO2 io-mode!
-  OMODE-AF-PP MOSI2 io-mode!
+  OMODE-PP    ssel2 @ io-mode! -spi2
+  OMODE-AF-PP SCLK2   io-mode!
+  IMODE-FLOAT MISO2   io-mode!
+  OMODE-AF-PP MOSI2   io-mode!
+
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
-  %0000000001001100 SPI2-CR1 !  \ clk/4, i.e. 9 MHz, master
+  %0000000001010100 SPI2-CR1 !  \ clk/8, i.e. 9 MHz, master
   SPI2-SR @ drop  \ appears to be needed to avoid hang in some cases
   2 bit SPI2-CR2 bis!  \ SS output enable
 ;

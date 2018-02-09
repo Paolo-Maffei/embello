@@ -1,7 +1,6 @@
 \ bit-banged SPI driver
 
-PA4 variable ssel  \ pin used as slave select
-
+[ifndef] ssel  PA4 variable ssel  [then]  \ can be changed at run time
 [ifndef] SCLK  PA5 constant SCLK  [then]
 [ifndef] MISO  PA6 constant MISO  [then]
 [ifndef] MOSI  PA7 constant MOSI  [then]
@@ -14,7 +13,7 @@ PA4 variable ssel  \ pin used as slave select
     dup $80 and MOSI io!
     SCLK ios!
     shl
-    MISO io@ or
+    MISO io@ 1 and or
     SCLK ioc!
   loop
   $FF and ;
