@@ -1,7 +1,6 @@
 \ PDP-8 emulator
 
-8192 buffer: mem       \ simulated memory, 4 Kw
-ROM mem ROM-SIZE move  \ fill with initial contents
+8192 buffer: mem  \ simulated memory, 4 Kw
 
 0 variable ac.r
 0 variable pc.r
@@ -102,6 +101,7 @@ create op-tab ' op0 , ' op1 , ' op2 , ' op3 , ' op4 , ' op5 , ' op6 , ' op7 ,
   dup 7 rshift %11100 and  op-tab + @  execute ;
 
 : run
+  ROM mem ROM-SIZE move  \ copy rom data to ram
   0200 pc!
   begin
     #1000 0 do
