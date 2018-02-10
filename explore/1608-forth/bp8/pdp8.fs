@@ -2,32 +2,32 @@
 
 8192 buffer: mem  \ simulated memory, 4 Kw
 
-0 variable ac.r
-0 variable pc.r
-0 variable mq.r
-0 variable sr.r
-0 variable iena
+0 variable ac.r  \ accumulator
+0 variable pc.r  \ program counter
+0 variable mq.r  \ memory quotient
+0 variable sr.r  \ switch register
+0 variable iena  \ shifting interrupt enable
 
 : octal ( --) #8 base ! ;  octal  \ switch to octal mode from here on down
 : o.4 ( u -- ) base @ octal swap  u.4  base ! ;
 
-: m@ ( u -- u )    shl mem + h@ ;
-: m! ( u1 u2 -- )  shl mem + h! ;
+: m@ ( u -- u )    shl mem + h@ ;  \ fetch memory word
+: m! ( u1 u2 -- )  shl mem + h! ;  \ store memory word
 
-: ac  ( -- u )  ac.r @ ;
-: ac! ( u -- )  ac.r ! ;
-: pc  ( -- u )  pc.r @ ;
-: pc! ( u -- )  pc.r ! ;
+: ac  ( -- u )  ac.r @ ;  \ fetch accumulator
+: ac! ( u -- )  ac.r ! ;  \ save in accumulator
+: pc  ( -- u )  pc.r @ ;  \ fetch program counter
+: pc! ( u -- )  pc.r ! ;  \ save in program counter
 
-: low12 ( u -- u ) 07777 and ;
-: low13 ( u -- u ) 17777 and ;
-: clr12 ( u -- u ) 10000 and ;
-: 1+w   ( u -- u ) 1+ low12 ;
-: ++pc  ( -- )     pc 1+w pc! ;
+: low12 ( u -- u ) 07777 and ;   \ clear link bit
+: low13 ( u -- u ) 17777 and ;   \ clear overflow above link bit
+: clr12 ( u -- u ) 10000 and ;   \ clear accumulator, keep link bit
+: 1+w   ( u -- u ) 1+ low12 ;    \ increment modulo 4096
+: ++pc  ( -- )     pc 1+w pc! ;  \ advance program counter
 
-: addr ( u -- u )
-  dup 0177 and  ( ir ac )  \ immediate
-  over 0200 and if pc 1- 7600 and or then  \ page-rel
+: addr ( u -- u )  \ common instruction decode, converts ir to effective addr
+  dup 0177 and  ( ir ac )                               \ immediate
+  over 0200 and if pc 1- 7600 and or then               \ page-relative
   swap 0400 and if
     dup 7770 and 0010 = if dup m@ 1+w over m! then  m@  \ auto-inc, indirect
   then ;
@@ -95,12 +95,12 @@
 
 create op-tab ' op0 , ' op1 , ' op2 , ' op3 , ' op4 , ' op5 , ' op6 , ' op7 , 
 
-: cycle
+: cycle ( -- )  \ execute one instruction
   iena @ 2/ iena !  \ bit 0 determines whether interrupts are enabled
   pc  dup 1+w pc!  m@
   dup 7 rshift %11100 and  op-tab + @  execute ;
 
-: run
+: go  \ load program and run forever
   ROM mem ROM-SIZE move  \ copy rom data to ram
   0200 pc!
   begin
@@ -113,4 +113,4 @@ create op-tab ' op0 , ' op1 , ' op2 , ' op3 , ' op4 , ' op5 , ' op6 , ' op7 ,
   again ;
 
 decimal
-run
+\ go
