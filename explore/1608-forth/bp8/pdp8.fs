@@ -26,10 +26,10 @@
 : ++pc  ( -- )     pc 1+w pc! ;  \ advance program counter
 
 : addr ( u -- u )  \ common instruction decode, converts ir to effective addr
-  dup 0177 and  ( ir ac )                               \ immediate
-  over 0200 and if pc 1- 7600 and or then               \ page-relative
-  swap 0400 and if
-    dup 7770 and 0010 = if dup m@ 1+w over m! then  m@  \ auto-inc, indirect
+  dup 0177 and  ( ir ac )                  \ immediate
+  over 0200 and if pc 1- 7600 and or then  \ page-relative
+  swap 0400 and if                         \ auto-inc, indirect
+    dup 7770 and 0010 = if dup m@ 1+w over m! then  m@
   then ;
 
 : op0 ( u -- ) addr m@  10000 or  ac and ac! ;                  \ AND
