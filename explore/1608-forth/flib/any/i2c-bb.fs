@@ -31,13 +31,13 @@
 
 : b>i2c ( f -- )  \ send one I2C bit
   0<> SDA io! i2c-half SCL-ios! i2c-half SCL ioc! ;
-: i2c>b ( -- b )  \ receive one I2C bit
+: i2c>b ( -- f )  \ receive one I2C bit
   SDA ios! i2c-half SCL-ios! i2c-half SDA io@ SCL ioc! ;
 
 : x>i2c ( b -- nak )  \ send one byte
   8 0 do dup 128 and b>i2c shl loop drop i2c>b ;
 : xi2c> ( nak -- b )  \ read one byte
-  0 8 0 do shl i2c>b + loop swap b>i2c ;
+  0 8 0 do shl i2c>b 1 and + loop swap b>i2c ;
 
 : i2c-flush ( -- )
   i2c.prv @ x>i2c  ?dup if i2c.nak ! then ;
