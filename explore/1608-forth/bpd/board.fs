@@ -7,18 +7,6 @@ compiletoflash
 \ 5  constant io-ports  \ A..E
 \ 9 constant I2C.DELAY
 
-\ emulate c, which is not available in hardware on some chips.
-\ copied from Mecrisp's common/charcomma.txt
-\ 0 variable c,collection
-
-\ : c, ( c -- )  \ emulate c, with h,
-\   c,collection @ ?dup if $FF and swap 8 lshift or h,
-\                          0 c,collection !
-\                       else $100 or c,collection ! then ;
-
-\ : calign ( -- )  \ must be called to flush after odd number of c, calls
-\   c,collection @ if 0 c, then ;
-
 \ : jtag-deinit ( -- )  \ disable JTAG on PB3 PB4 PA15
 \   25 bit AFIO-MAPR bis! ;
 \ : swd-deinit ( -- )  \ disable JTAG as well as PA13 and PA14

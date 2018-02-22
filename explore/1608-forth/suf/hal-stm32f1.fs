@@ -42,6 +42,18 @@ $40022000 constant FLASH
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
 ;
 
+\ emulate c, which is not available in hardware on some chips.
+\ copied from Mecrisp's common/charcomma.txt
+0 variable c,collection
+
+: c, ( c -- )  \ emulate c, with h,
+  c,collection @ ?dup if $FF and swap 8 lshift or h,
+                         0 c,collection !
+                      else $100 or c,collection ! then ;
+
+: calign ( -- )  \ must be called to flush after odd number of c, calls
+  c,collection @ if 0 c, then ;
+
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone
   <builds begin here dup flash-pagesize 1- and while 0 h, repeat
   does>   begin dup  dup flash-pagesize 1- and while 2+   repeat  cr

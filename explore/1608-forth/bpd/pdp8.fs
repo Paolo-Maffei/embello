@@ -1,6 +1,6 @@
 \ PDP-8 emulator
 
-8192 buffer: mem  \ simulated memory, 4 Kw
+8192 buffer: mem  \ simulated memory, 4 Kw = 8 Kb
 
 0 variable ac.r  \ accumulator
 0 variable pc.r  \ program counter
@@ -13,6 +13,11 @@
 
 : m@ ( u -- u )    shl mem + h@ ;  \ fetch memory word
 : m! ( u1 u2 -- )  shl mem + h! ;  \ store memory word
+
+$00010000 constant DF32-BASE
+0 variable daddr
+: wc.r 7750 shl mem + ;  \ df32 word count
+: ma.r 7751 shl mem + ;  \ df32 memory address
 
 : ac  ( -- u )  ac.r @ ;  \ fetch accumulator
 : ac! ( u -- )  ac.r ! ;  \ save in accumulator
@@ -50,6 +55,30 @@
       04 of dup 1 and if ++pc then  \ skip, output always ready
             dup 4 and if ac 0177 and emit then  \ wrch
             dup 2 and if ac clr12 ac! then  \ clear flag
+      endof
+      60 of  \ DF32
+        cr ." IOT " dup o.4 space
+        dup 1 and if 0 daddr ! then
+        dup 2 and if  \ read
+          daddr @ 2* DF32-BASE +     \ from flash
+          10000 wc.r h@ -            \ word count
+          ma.r h@ 2dup + ma.r h! 2+  \ advance memory address
+          2* mem +                   \ to virtual ram
+          swap 2* move               \ copy bytes
+          0 wc.r h!                  \ clear count
+        then
+        dup 4 and if  \ write (dummy)
+          10000 wc.r h@ -            \ word count
+          ma.r h@ + ma.r h! 2+       \ advance memory address
+          0 wc.r h!                  \ clear count
+        then
+      endof
+      61 of  \ DF32
+        cr ." IOT " dup o.4 space
+      endof
+      62 of  \ DF32
+        cr ." IOT " dup o.4 space
+        dup 2 and if ++pc then  \ skip if done
       endof
       \ cr ." IOT " over o.4
     endcase  drop ;
@@ -101,11 +130,21 @@ create op-tab ' op0 , ' op1 , ' op2 , ' op3 , ' op4 , ' op5 , ' op6 , ' op7 ,
   dup 7 rshift %11100 and  op-tab + @  execute ;
 
 : go  \ load program and run forever
-  ROM mem ROM-SIZE move  \ copy rom data to ram
+  [ifdef] ROM
+    ROM mem ROM-SIZE move  \ copy rom data to ram
+  [else]
+    7600 0200 m!
+    6603 0201 m!
+    6622 0202 m!
+    5202 0203 m!
+    5600 0204 m!
+    7576 wc.r m!
+    7576 ma.r m!
+  [then]
   0200 pc!
   begin
     #1000 0 do
-      \ cr pc o.4 ." : " pc m@ o.4 space ac #12 rshift [char] 0 + emit ac o.4
+      cr pc o.4 ." : " pc m@ o.4 space ac #12 rshift [char] 0 + emit ac o.4
       cycle
     loop
     \ simulate periodic timer with an interrupt every 1000 cycles
