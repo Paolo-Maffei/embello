@@ -1,6 +1,7 @@
 \ these definitions should always stay loaded
 
 $5000 eraseflashfrom  \ need to start off with a clean Mecrisp image
+cr
 compiletoflash
 
 : chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack

@@ -1,6 +1,7 @@
 \ core definitions
 
 <<<board>>>
+cr
 compiletoflash
 ( core start: ) here hex.
 
