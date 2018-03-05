@@ -9,40 +9,15 @@ $6C000800 constant LCD-RAM
 
 : tft-fsmc ( -- )  \ configure the FSMC, SRAM bank 4
   $80               \ keep reset value
-\                   \ FSMC_DataAddressMux_Disable
-\                   \ FSMC_MemoryType_SRAM
   %01 4 lshift or   \ FSMC_MemoryDataWidth_16b
-\                   \ FSMC_BurstAccessMode_Disable
-\                   \ FSMC_WaitSignalPolarity_Low
-\                   \ FSMC_WrapMode_Disable
-\                   \ FSMC_WaitSignalActive_BeforeWaitState
   1 12 lshift or    \ FSMC_WriteOperation_Enable
-\                   \ FSMC_WaitSignal_Disable
   1 14 lshift or    \ FSMC_ExtendedMode_Enable
-\                   \ FSMC_AsynchronousWait_Disable
-\                   \ FSMC_WriteBurst_Disable
   FSMC-BCR4 !
-
-  0
-  1 0 lshift or     \ FSMC_AddressSetupTime = 2x HCLK
-\                   \ FSMC_AddressHoldTime = 0
-  15 8 lshift or    \ FSMC_DataSetupTime = 16x HCLK
-\                   \ FSMC_BusTurnAroundDuration = 0x00
-\                   \ FSMC_CLKDivision = 0x00
-\                   \ FSMC_DataLatency = 0x00
-\                   \ FSMC_AccessMode_A
+  1 0 lshift        \ FSMC_AddressSetupTime
+  15 8 lshift or    \ FSMC_DataSetupTime
   FSMC-BTR4 !
-
-  0
-  0 0 lshift or     \ FSMC_AddressSetupTime = 1x HCLK
-\                   \ FSMC_AddressHoldTime = 0
-  3 8 lshift or     \ FSMC_DataSetupTime = 4x HCLK
-\                   \ FSMC_BusTurnAroundDuration = 0x00
-\                   \ FSMC_CLKDivision = 0x00
-\                   \ FSMC_DataLatency = 0x00
-\                   \ FSMC_AccessMode_A
+  3 8 lshift        \ FSMC_DataSetupTime
   FSMC-BWTR4 !
-
   1 FSMC-BCR4 bis!  \ MBKEN:Memorybankenablebit
 ;
 

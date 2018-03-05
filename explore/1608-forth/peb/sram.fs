@@ -8,31 +8,11 @@ $68000000 constant SRAM
 
 : sram-init ( -- )  \ set up FSMC access to 512 KB SRAM in bank 2
   $80               \ keep reset value
-\                   \ FSMC_DataAddressMux_Disable
-\                   \ FSMC_MemoryType_SRAM
   %01 4 lshift or   \ FSMC_MemoryDataWidth_16b
-\                   \ FSMC_BurstAccessMode_Disable
-\                   \ FSMC_WaitSignalPolarity_Low
-\                   \ FSMC_WrapMode_Disable
-\                   \ FSMC_WaitSignalActive_BeforeWaitState
   1 12 lshift or    \ FSMC_WriteOperation_Enable
-\                   \ FSMC_WaitSignal_Disable
-\                   \ FSMC_AsynchronousWait_Disable
-\                   \ FSMC_ExtendedMode_Disable
-\                   \ FSMC_WriteBurst_Disable
   FSMC-BCR3 !
-
-\ for 72 MHz, i.e. 13.89 ns per clock cycle
-\ assuming address setup > 70 ns and data setup > 20 ns + 1 cycle
-\ started with addr/data/turn as 5/2/1, but even 1/2/0 seems to work fine...
-  0
-  1 0 lshift or     \ FSMC_AddressSetupTime = 6
-\                   \ FSMC_AddressHoldTime = 0
-  2 8 lshift or     \ FSMC_DataSetupTime = 3
-  0 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
-\                   \ FSMC_CLKDivision = 0x00
-\                   \ FSMC_DataLatency = 0x00
-\                   \ FSMC_AccessMode_A
+  1 0 lshift        \ FSMC_AddressSetupTime
+  2 8 lshift or     \ FSMC_DataSetupTime
   FSMC-BTR3 !
   1 FSMC-BCR3 bis!  \ MBKEN:Memorybankenablebit
 ;
