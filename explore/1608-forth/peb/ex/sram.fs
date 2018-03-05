@@ -1,0 +1,97 @@
+\ SRAM access via FSMC bank 3
+
+forgetram
+
+\ SRAM on PZ6806L experimentation board (256Kx16, IS62WV51216BLL-55TLI)
+
+$A0000010 constant FSMC-BCR3
+$A0000014 constant FSMC-BTR3
+
+: sram-pins ( -- )
+  8 bit RCC-AHBENR bis!  \ enable FSMC clock
+  OMODE-AF-PP OMODE-FAST + dup PD0 %1111111100110011 io-modes!
+                           dup PE0 %1111111111000011 io-modes!
+                           dup PF0 %1111000000111111 io-modes!
+                               PG0 %0001010000111111 io-modes! ;
+
+: sram-fsmc ( -- )
+  $80               \ keep reset value
+\                   \ FSMC_DataAddressMux_Disable
+\                   \ FSMC_MemoryType_SRAM
+  %01 4 lshift or   \ FSMC_MemoryDataWidth_16b
+\                   \ FSMC_BurstAccessMode_Disable
+\                   \ FSMC_WaitSignalPolarity_Low
+\                   \ FSMC_WrapMode_Disable
+\                   \ FSMC_WaitSignalActive_BeforeWaitState
+  1 12 lshift or    \ FSMC_WriteOperation_Enable
+\                   \ FSMC_WaitSignal_Disable
+\                   \ FSMC_AsynchronousWait_Disable
+\                   \ FSMC_ExtendedMode_Disable
+\                   \ FSMC_WriteBurst_Disable
+  FSMC-BCR3 !
+
+\ for 72 MHz, i.e. 13.89 ns per clock cycle
+\ assuming address setup > 70 ns and data setup > 20 ns + 1 cycle
+\ started with addr/data/turn as 5/2/1, but even 1/2/0 seems to work fine...
+
+  0
+  1 0 lshift or     \ FSMC_AddressSetupTime = 6
+\                   \ FSMC_AddressHoldTime = 0
+  2 8 lshift or     \ FSMC_DataSetupTime = 3
+  0 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
+\                   \ FSMC_CLKDivision = 0x00
+\                   \ FSMC_DataLatency = 0x00
+\                   \ FSMC_AccessMode_A
+  FSMC-BTR3 !
+
+  1 FSMC-BCR3 bis!  \ MBKEN:Memorybankenablebit
+;
+
+$68000000 constant SRAM
+
+: sram-init ( -- )  \ set up FSMC access to 512 KB SRAM in bank 2
+  sram-pins sram-fsmc ;
+
+\ see http://compgroups.net/comp.lang.forth/random-number-generator/1259025
+\ only last bit should be used, but for this purpose we can use all 32 bits
+
+123456789 variable seed
+
+: random ( -- u ) seed @ dup ror or seed @ rol xor dup seed ! ;
+
+: r 0 do random hex. loop ;
+
+: sram-test ( u -- )  \ test first N bytes of SRAM, original data is lost
+  sram-init
+  $12345678 seed !
+  dup 0 do
+    random SRAM i + !  \ fill it with random values
+  4 +loop
+\ SRAM $10 dump
+  $12345678 seed !
+  0 do
+    random SRAM i + @  \ now read those values back and compare
+    <> if i . ." FAILED!" quit then
+  4 +loop ;
+
+: sram-full ( -- )  \ test entire 512 KB SRAM, then clear its contents
+  19 bit  dup sram-test  SRAM swap 0 fill ;
+
+\ : sram-time ( -- )  \ measure read and write times for a full scan
+\   sram-init
+\   micros  19 bit 0 do                      4 +loop  micros swap - .
+\   micros  19 bit 0 do  i             drop  4 +loop  micros swap - .
+\   micros  19 bit 0 do    SRAM i + @ drop  4 +loop  micros swap - .
+\   micros  19 bit 0 do  i SRAM i + !       4 +loop  micros swap - . ;
+\ sample output: 495471 641201 1486421 1369795
+
+123 .
+1000 sram-test
+456 .
+sram-full
+789 .
+
+: a micros sram-full micros swap - . ." us " ;
+: b 0 do sram-full [char] . emit loop ;
+a
+cr 1000 b
