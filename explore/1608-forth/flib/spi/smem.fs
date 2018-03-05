@@ -7,7 +7,7 @@
   -spi  $05 smem-cmd  begin spi> 1 and 0= until  -spi ;
 : smem-wcmd ( cmd -- )  smem-wait  $06 smem-cmd -spi smem-cmd ;
 
-: smem-id ( -- u)  \ return the SPI memory's manufacturer and device ID
+: smem-id ( -- u )  \ return the SPI memory's manufacturer and device ID
   $9F smem-cmd spi> 8 lshift spi> or 8 lshift spi> or -spi ;
 : smem-size ( -- u )  \ return size of spi memory chip in KB
   smem-id $FF and 10 -  bit ;

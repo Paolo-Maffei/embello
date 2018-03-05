@@ -27,6 +27,7 @@ include ../flib/stm32f1/clock.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins144.fs
 include ../flib/stm32f1/spi.fs
+include ../flib/stm32f1/spi2.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
 include ../flib/stm32f1/adc.fs
