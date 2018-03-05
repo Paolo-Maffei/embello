@@ -4,8 +4,8 @@ Chinese PZ6806L experimentation board with STM32F103ZE and lots of peripherals:
 
 The µC is an ARM Cortex M3 @ 72 MHz with 64 KB RAM and 512 KB flash.
 
-On-board SRAM, serial USB, 2x µSD socket, RS232, A/D and D/A, 7-seg LED, CAN,
-RS485, 4 buttons, 8 LEDs, trimpot, 240x400 LCD, DS18B20, IR receiver, JTAG,
+Serial USB, 1 MB SRAM, 2x µSD socket, RS232, A/D and D/A, 7-seg LED, CAN,
+RS485, 4 buttons, 8 LEDs, trimpot, DS18B20, IR receiver, 240x400 LCD, JTAG,
 buzzer, nRF24L01 + ESP8266 + ENC28J60 headers, SPI flash, I2C EEPROM & accel.
 
 [Schematic](schematic.pdf) (most text is in Chinese but "guessable").
