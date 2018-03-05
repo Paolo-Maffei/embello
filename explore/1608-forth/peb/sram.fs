@@ -4,14 +4,9 @@
 $A0000010 constant FSMC-BCR3
 $A0000014 constant FSMC-BTR3
 
-: sram-pins ( -- )
-  8 bit RCC-AHBENR bis!  \ enable FSMC clock
-  OMODE-AF-PP OMODE-FAST + dup PD0 %1111111100110011 io-modes!
-                           dup PE0 %1111111111000011 io-modes!
-                           dup PF0 %1111000000111111 io-modes!
-                               PG0 %0001010000111111 io-modes! ;
+$68000000 constant SRAM
 
-: sram-fsmc ( -- )
+: sram-init ( -- )  \ set up FSMC access to 512 KB SRAM in bank 2
   $80               \ keep reset value
 \                   \ FSMC_DataAddressMux_Disable
 \                   \ FSMC_MemoryType_SRAM
@@ -41,8 +36,3 @@ $A0000014 constant FSMC-BTR3
   FSMC-BTR3 !
   1 FSMC-BCR3 bis!  \ MBKEN:Memorybankenablebit
 ;
-
-$68000000 constant SRAM
-
-: sram-init ( -- )  \ set up FSMC access to 512 KB SRAM in bank 2
-  sram-pins sram-fsmc ;

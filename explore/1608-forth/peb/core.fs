@@ -60,13 +60,23 @@ include ../flib/spi/smem.fs
 : smem-demo ( -- )
   PG13 ssel2 ! ." ID: " smem-id hex. ." , " smem-size . ." kB " ;
 
+: fsmc-pins ( -- )
+  8 bit RCC-AHBENR bis!  \ enable FSMC clock
+  OMODE-AF-PP OMODE-FAST + dup PD0 %1111111100110011 io-modes!
+                           dup PE0 %1111111111000011 io-modes!
+                           dup PF0 %1111000000111111 io-modes!
+                               PG0 %0001010000111111 io-modes! ;
+
+\ these two drivers use the FSMC for memory-mapped access
 include sram.fs
+include tft.fs
 
 include ../flib/mecrisp/quotation.fs
 include ../flib/mecrisp/multi.fs
 include ../flib/any/timed.fs
 
-: init init led-init speaker-init key-init i2c-init ( smem-init ) sram-init ;
+: init init led-init speaker-init key-init i2c-init ( smem-init )
+            fsmc-pins sram-init tft-init ;
 
 cornerstone <<<core>>>
 hello
