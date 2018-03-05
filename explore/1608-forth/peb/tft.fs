@@ -75,3 +75,14 @@ $FFFF variable tft-fg
     over 2+ h@ swap  ( addr val reg )
     dup $800 = if drop ms else tft! then
   4 + repeat 2drop ;
+
+\ clear, putpixel, and display are used by the graphics.fs code
+
+: clear ( -- )
+  0 $201 tft! 0 $200 tft!  \ clear from origin
+  $202 LCD-REG h! tft-bg @  400 240 * 0 do dup LCD-RAM h! loop  drop ;
+
+: putpixel ( x y -- )  \ set a pixel in display memory
+  $201 tft! $200 tft! tft-fg @ $202 tft! ;
+
+: display ( -- ) ;  \ update tft from display memory (ignored)

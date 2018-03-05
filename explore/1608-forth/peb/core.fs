@@ -71,6 +71,11 @@ include ../flib/spi/smem.fs
 include sram.fs
 include tft.fs
 
+\ now the graphics code can be added
+include ../flib/mecrisp/graphics.fs
+\ include ../flib/any/digits.fs
+
+\ some more utility code
 include ../flib/mecrisp/quotation.fs
 include ../flib/mecrisp/multi.fs
 include ../flib/any/timed.fs
