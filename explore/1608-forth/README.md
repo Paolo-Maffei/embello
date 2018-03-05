@@ -5,6 +5,7 @@ structure of these directories, and how source files should be loaded:
 * **`bct`** - Blue Pill Component Tester, explores the ADC & GPIO pins
 * **`bme`** - BME280 sensor exploration using the Olimexino-STM32
 * **`bp8`** - Blue Pill running FOCAL on a PDP-8 emulator
+* **`bpx`** - Blue Pill for use on in experiments on a breadboard
 * **`cag`** - Console Access Gateway w/ STM32F103, acting as central RF console
 * **`eee`** - Experimental Engine Explorations on a HyTiny
 * **`g6s`** - Generic 64-pin F103 chips for use with the serial port (USART1)
@@ -12,6 +13,7 @@ structure of these directories, and how source files should be loaded:
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`lnr`** - Led Node Revisited - using a JeeNode Zero to drive LEDs via PWM
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
+* **`peb`** - Chinese PZ6806L board with STM32F103ZE and lots of peripherals
 * **`qld`** - Quick Loader -  using a Blue Pill to  re-flash a JNZ via SPI
 * **`rfc`** - Remote Console driver, routes console I/O over RF
 * **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
