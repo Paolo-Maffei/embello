@@ -2,7 +2,7 @@
 
 $A0000018 constant FSMC-BCR4
 $A000001C constant FSMC-BTR4
-$A000001C constant FSMC-BWTR4
+$A000011C constant FSMC-BWTR4
 
 $6C0007FE constant LCD-REG
 $6C000800 constant LCD-RAM
