@@ -47,9 +47,18 @@ $40010800 constant GPIO-BASE
 : iox! ( pin -- )  \ toggle pin, not interrupt safe
   (iox!) xor! exit [ $1000 setflags 2 h, ' (iox!) ,
   'f (iox!) h, ' xor! , 'f xor! h, ] ;
+
 : io! ( f pin -- )  \ set pin value
-  (io!)     ! exit [ $1000 setflags 2 h, ' (io!)  ,
-  'f (io!)  h, '    ! , 'f    ! h, ] ;
+  (io!) ! exit
+  [ $1000 setflags
+    7 h,
+    ' (ios!) , 'f  (ios!) h,
+    ' rot    , 'f  rot    h,
+    ' 0=     , 'f  0=     h,
+      4      ,     $2000  h,
+    ' and    , 'f  and    h,
+    ' +      , 'f  +      h,
+    ' !      , 'f  !      h, ] ;
 
 %0000 constant IMODE-ADC    \ input, analog
 %0100 constant IMODE-FLOAT  \ input, floating
