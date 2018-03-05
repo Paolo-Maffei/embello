@@ -1,4 +1,4 @@
-\ Test SRAM access via FSMC bank 3, the main code is now in core.fs
+\ Test SRAM access via FSMC, the setup code is now in ../sram.fs
 
 forgetram
 
