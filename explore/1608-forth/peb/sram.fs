@@ -1,4 +1,4 @@
-\ SRAM on PZ6806L experimentation board (256Kx16, IS62WV51216BLL-55TLI)
+\ SRAM on PZ6806L experimentation board (512Kx16, IS62WV51216BLL-55TLI)
 
 \ uses FSMC bank 3
 $A0000010 constant FSMC-BCR3

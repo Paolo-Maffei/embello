@@ -24,15 +24,15 @@ forgetram
     <> if i . ." FAILED!" quit then
   4 +loop ;
 
-: sram-full ( -- )  \ test entire 512 KB SRAM, then clear its contents
-  19 bit  dup sram-test  SRAM swap 0 fill ;
+: sram-full ( -- )  \ test entire 1 MB SRAM, then clear its contents
+  20 bit  dup sram-test  SRAM swap 0 fill ;
 
 \ : sram-time ( -- )  \ measure read and write times for a full scan
 \   sram-init
-\   micros  19 bit 0 do                      4 +loop  micros swap - .
-\   micros  19 bit 0 do  i             drop  4 +loop  micros swap - .
-\   micros  19 bit 0 do    SRAM i + @ drop  4 +loop  micros swap - .
-\   micros  19 bit 0 do  i SRAM i + !       4 +loop  micros swap - . ;
+\   micros  20 bit 0 do                      4 +loop  micros swap - .
+\   micros  20 bit 0 do  i             drop  4 +loop  micros swap - .
+\   micros  20 bit 0 do    SRAM i + @ drop  4 +loop  micros swap - .
+\   micros  20 bit 0 do  i SRAM i + !       4 +loop  micros swap - . ;
 
 123 .
 1000 sram-test

@@ -24,9 +24,9 @@ $6C000800 constant LCD-RAM
   FSMC-BCR4 !
 
   0
-  1 0 lshift or     \ FSMC_AddressSetupTime = 4x HCLK
+  1 0 lshift or     \ FSMC_AddressSetupTime = 2x HCLK
 \                   \ FSMC_AddressHoldTime = 0
-  15 8 lshift or    \ FSMC_DataSetupTime = 6x HCLK
+  15 8 lshift or    \ FSMC_DataSetupTime = 16x HCLK
 \                   \ FSMC_BusTurnAroundDuration = 0x00
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
@@ -34,9 +34,9 @@ $6C000800 constant LCD-RAM
   FSMC-BTR4 !
 
   0
-  0 0 lshift or     \ FSMC_AddressSetupTime = 4x HCLK
+  0 0 lshift or     \ FSMC_AddressSetupTime = 1x HCLK
 \                   \ FSMC_AddressHoldTime = 0
-  3 8 lshift or     \ FSMC_DataSetupTime = 6x HCLK
+  3 8 lshift or     \ FSMC_DataSetupTime = 4x HCLK
 \                   \ FSMC_BusTurnAroundDuration = 0x00
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
