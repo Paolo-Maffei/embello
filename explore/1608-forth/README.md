@@ -12,6 +12,7 @@ structure of these directories, and how source files should be loaded:
 * **`g6u`** - Generic 64-pin F103 chips for use with USB console driver
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`lnr`** - Led Node Revisited - using a JeeNode Zero to drive LEDs via PWM
+* **`lrw`** - LoRaWAN Nucleo Pack with STM32L073RZ board and SX1272 radio
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`peb`** - Chinese PZ6806L board with STM32F103ZE and lots of peripherals
 * **`qld`** - Quick Loader -  using a Blue Pill to  re-flash a JNZ via SPI
