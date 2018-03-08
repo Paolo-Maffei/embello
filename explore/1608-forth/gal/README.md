@@ -3,7 +3,7 @@ This is an STM32F103RC board, intended for use as GAL programmer.
 Pinout should make it possible to support 16v8, 22v10, and 26v12.  
 Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
 
-              J2                              J3
+               J2                              J3
           ------------                    ------------
         9  pb9 ^^ pb8  8             mosi  pa7 -- pa6  miso
         7 pb11    pb10 led            dac  pa4 -- pa5  e-sense (also dac)
@@ -40,7 +40,7 @@ ZIF socket connections:
     14       1-14           15      15-28
 
 gnd = n-mosfet (3x), vcc = p-mosfet w/ pull-up to 5V on gate (2x)  
-vpp = dac w/ power opa540 in 6x mode, vppe = opa540 output enable  
+vpp = dac w/ power opa548 in 6x mode, vppe = opa548 output enable  
 include jumper to switch vcc between 3.3V and 5V
 
 Leaves unassigned pins for 1x uart, 1x spi, 1x i2c.
