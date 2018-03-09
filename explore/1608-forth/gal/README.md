@@ -3,22 +3,22 @@ This is an STM32F103RC board, intended for use as GAL programmer.
 Pinout should make it possible to support 16v8, 20v8, 22v10, and 26v12.  
 Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
 
-                  J2                              J3
-             ------------                    ------------
-           9  pb9 ^^ pb8   8            mosi  -  pa7 -- pa6   - miso
-           7 pb11    pb10  - (led)       dac  -  pa4 ~? pa5   - e-sense
-    15-28 21 pb13    pb12 28 15-28       osc  - pc15 -- pc14  - osc
-    15-28 20 pb15    pb14 27 15-28          !28  pd2    pa15  - a-nss
-     1-14 10  pc1 -- pc0   1 1-14        i2c  -  pb6    pb7   - i2c
-     1-14  5  pc3 -- pc2   3 1-14            !7  pb4    pb3   - a-sck
-     1-14  6  pc5 -- pc4   4 1-14       1-14 13  pa1 -- pa0  11 1-14
-    15-28 19  pc7    pc6  26 15-28      1-14 14  pa3 -- pa2  12 1-14
-    15-28 18  pc9    pc8  25 15-28       swd    pa14    pa13  - swd
-    15-28 17 pc11    pc10 24 15-28          !21  pb5 -- pb0  10!
-    15-28 16  pa8 ^  pc12 23 15-28       usb  - pa12    pa11  - usb
-    15-28 15  pd0 x  pb2   - (boot)       rx  - pa10    pa9   - tx
-           -   nc  x pd1  22 15-28      vppe  - pc13 -- pb1  12!
-           -  gnd    3v3   -                  -  gnd    5v    -
+                  J2                                 J3
+             ------------                       ------------
+           9  PB9 ^^ PB8   8            MOSI  -  PA7 -- PA6   - MISO
+           7 PB11    PB10  - (LED)       DAC  -  PA4 ~? PA5   - VPP-IN
+    15-28 21 PB13    PB12 28 15-28       OSC  - PC15 -- PC14  - OSC
+    15-28 20 PB15    PB14 27 15-28          !28  PD2    PA15  - A-NSS
+     1-14 10  PC1 -- PC0   1 1-14        I2C  -  PB6    PB7   - I2C
+     1-14  5  PC3 -- PC2   3 1-14            !7  PB4    PB3   - A-SCK
+     1-14  6  PC5 -- PC4   4 1-14       1-14 13  PA1 -- PA0  11 1-14
+    15-28 19  PC7    PC6  26 15-28      1-14 14  PA3 -- PA2  12 1-14
+    15-28 18  PC9    PC8  25 15-28       SWD    PA14    PA13  - SWD
+    15-28 17 PC11    PC10 24 15-28          !21  PB5 -- PB0  10!
+    15-28 16  PA8 ^  PC12 23 15-28       USB  - PA12    PA11  - USB
+    15-28 15  PD0 X  PB2   - (BOOT)       RX  - PA10    PA9   - TX
+           -   NC  X PD1  22 15-28      VPPE  - PC13 -- PB1  12!
+           -  GND    3V3   -                  -  GND    5V    -
            \              /                   \               /
             +--- ZIF ---+                      +---- ZIF ----+
 
@@ -29,23 +29,23 @@ Pin allocation leaves free pins for 1x UART, 1x SPI, 1x I2C, USB, and SWD.
 
 ZIF socket connections:
 
-     1       pc0            28 vcc  pb12  pd2!
-     2 vpp   pa5? pa4~      27      pb14 
-     3       pc2            26      pc6  
-     4       pc4            25      pc8  
-     5       pc3            24      pc10 
-     6       pc5            23      pc12 
-     7 vcc   pb11 pb4!      22      pd1  
-     8       pb8            21 gnd  pb13  pb5!
-     9       pb9            20      pb15 
-    10 gnd   pc1  pb0!      19      pc7  
-    11       pa0            18      pc9  
-    12 gnd   pa2  pb1!      17      pc11 
-    13       pa1            16      pa8  
-    14       pa3            15      pd0  
+     1       PC0            28 VCC  PB12  PD2!
+     2 VPP   PA5? PA4~      27      PB14 
+     3       PC2            26      PC6  
+     4       PC4            25      PC8  
+     5       PC3            24      PC10 
+     6       PC5            23      PC12 
+     7 VCC   PB11 PB4!      22      PD1  
+     8       PB8            21 GND  PB13  PB5!
+     9       PB9            20      PB15 
+    10 GND   PC1  PB0!      19      PC7  
+    11       PA0            18      PC9  
+    12 GND   PA2  PB1!      17      PC11 
+    13       PA1            16      PA8  
+    14       PA3            15      PD0  
 
 gnd = n-mosfet (3x), vcc = p-mosfet w/ pull-up to 5V on gate (2x)  
-vpp = dac w/ power opa548 in 6x mode, vppe = opa548 output enable  
+vpp = dac & adc w/ power opa548 in 6x mode, vppe = opa548 output enable  
 include jumper to switch vcc between 3.3V and 5V
 
 GAL programming pinouts:
