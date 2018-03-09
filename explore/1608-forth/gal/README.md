@@ -11,8 +11,8 @@ Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
     15-28 20 pb15    pb14 27 15-28          !28  pd2    pa15  - a-nss
      1-14 10  pc1 -- pc0   1 1-14        i2c  -  pb6    pb7   - i2c
      1-14  5  pc3 -- pc2   3 1-14            !7  pb4    pb3   - a-sck
-     1-14  6  pc5 -- pc4   4 1-14       1-14 ..  pa1 -- pa0  .. 1-14
-    15-28 19  pc7    pc6  26 15-28      1-14 ..  pa3 -- pa2  .. 1-14
+     1-14  6  pc5 -- pc4   4 1-14       1-14 13  pa1 -- pa0  11 1-14
+    15-28 19  pc7    pc6  26 15-28      1-14 14  pa3 -- pa2  12 1-14
     15-28 18  pc9    pc8  25 15-28       swd    pa14    pa13  - swd
     15-28 17 pc11    pc10 24 15-28          !21  pb5 -- pb0  10!
     15-28 16  pa8 ^  pc12 23 15-28       usb  - pa12    pa11  - usb
@@ -30,7 +30,7 @@ Pin allocation leaves free pins for 1x UART, 1x SPI, 1x I2C, USB, and SWD.
 ZIF socket connections:
 
      1       pc0            28 vcc  pb12  pd2!
-     2 vpp   pa4~ pa5?      27      pb14 
+     2 vpp   pa5? pa4~      27      pb14 
      3       pc2            26      pc6  
      4       pc4            25      pc8  
      5       pc3            24      pc10 
@@ -39,10 +39,10 @@ ZIF socket connections:
      8       pb8            21 gnd  pb13  pb5!
      9       pb9            20      pb15 
     10 gnd   pc1  pb0!      19      pc7  
-    11       1-14           18      pc9  
-    12 gnd   1-14 pb1!      17      pc11 
-    13       1-14           16      pa8  
-    14       1-14           15      pd0  
+    11       pa0            18      pc9  
+    12 gnd   pa2  pb1!      17      pc11 
+    13       pa1            16      pa8  
+    14       pa3            15      pd0  
 
 gnd = n-mosfet (3x), vcc = p-mosfet w/ pull-up to 5V on gate (2x)  
 vpp = dac w/ power opa548 in 6x mode, vppe = opa548 output enable  
