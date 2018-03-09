@@ -18,14 +18,14 @@ Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
     15-28 16  pa8 ^  pc12 23 15-28       usb  - pa12    pa11  - usb
     15-28 15  pd0 x  pb2   - (boot)       rx  - pa10    pa9   - tx
            -   nc  x pd1  22 15-28      vppe  - pc13 -- pb1  12!
-           -  gnd    3v3   -               -  -  gnd    5v    -
+           -  gnd    3v3   -                  -  gnd    5v    -
            \              /                   \               /
             +--- ZIF ---+                      +---- ZIF ----+
 
 ^ = pwm-able, x = rtc xtal (disabled), - = not 5V-tolerant,
 ! = mosfet control, ~ = dac, ? = adc
 
-Pin allocation leaves free pins for 1x uart, 1x spi, and 1x i2c.
+Pin allocation leaves free pins for 1x UART, 1x SPI, 1x I2C, and SWD.
 
 ZIF socket connections:
 
