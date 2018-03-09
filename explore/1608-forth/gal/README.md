@@ -3,24 +3,26 @@ This is an STM32F103RC board, intended for use as GAL programmer.
 Pinout should make it possible to support 16v8, 22v10, and 26v12.  
 Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
 
-               J2                              J3
-          ------------                    ------------
-        9  pb9 ^^ pb8  8             mosi  pa7 -- pa6  miso
-        7 pb11    pb10 led            dac  pa4 ~? pa5  e-sense (also dac)
-    15-28 pb13    pb12 15-28          osc pc15 -- pc14 osc
-    15-28 pb15    pb14 15-28           28! pd2    pa15 a-nss
-     1-14  pc1 -- pc0  1-14           i2c  pb6    pb7  i2c
-     1-14  pc3 -- pc2  1-14             7! pb4    pb3  a-sck
-     1-14  pc5 -- pc4  1-14          1-14  pa1 -- pa0  1-14
-    15-28  pc7    pc6  15-28         1-14  pa3 -- pa2  1-14
-    15-28  pc9    pc8  15-28          swd pa14    pa13 swd
-    15-28 pc11    pc10 15-28           21! pb5 -- pb0 !10
-    15-28  pa8 ^  pc12 15-28          usb pa12    pa11 usb
-    15-28  pd0 x  pb2  boot            rx pa10    pa9  tx
-            nc  x pd1  15-28         vppe pc13 -- pb1 !12
-        -  gnd    3v3  -                -  gnd    5v   -
+                  J2                              J3
+             ------------                    ------------
+           9  pb9 ^^ pb8   8            mosi  -  pa7 -- pa6   - miso
+           7 pb11    pb10  - (led)       dac  -  pa4 ~? pa5   - e-sense
+    15-28 21 pb13    pb12 28 15-28       osc  - pc15 -- pc14  - osc
+    15-28 20 pb15    pb14 27 15-28          !28  pd2    pa15  - a-nss
+     1-14 10  pc1 -- pc0   1 1-14        i2c  -  pb6    pb7   - i2c
+     1-14  5  pc3 -- pc2   3 1-14            !7  pb4    pb3   - a-sck
+     1-14  6  pc5 -- pc4   4 1-14       1-14 ..  pa1 -- pa0  .. 1-14
+    15-28 19  pc7    pc6  26 15-28      1-14 ..  pa3 -- pa2  .. 1-14
+    15-28 18  pc9    pc8  25 15-28       swd    pa14    pa13  - swd
+    15-28 17 pc11    pc10 24 15-28          !21  pb5 -- pb0  10!
+    15-28 16  pa8 ^  pc12 23 15-28       usb  - pa12    pa11  - usb
+    15-28 15  pd0 x  pb2   - (boot)       rx  - pa10    pa9   - tx
+           -   nc  x pd1  22 15-28      vppe  - pc13 -- pb1  12!
+           -  gnd    3v3   -               -  -  gnd    5v    -
+           \              /                   \               /
+            +--- ZIF ---+                      +---- ZIF ----+
 
-^ = pwm-able, x = rtc xtal (disabled), - = not 5V-tolerant
+^ = pwm-able, x = rtc xtal (disabled), - = not 5V-tolerant,
 ! = mosfet control, ~ = dac, ? = adc
 
 ZIF socket connections:
