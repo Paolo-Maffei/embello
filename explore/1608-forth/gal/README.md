@@ -25,7 +25,7 @@ Two 2x14 headers, with all 51 I/O pins, as well as 5V/3.3V/GND.
 ^ = pwm-able, x = rtc xtal (disabled), - = not 5V-tolerant,
 ! = mosfet control, ~ = dac, ? = adc
 
-Pin allocation leaves free pins for 1x UART, 1x SPI, 1x I2C, and SWD.
+Pin allocation leaves free pins for 1x UART, 1x SPI, 1x I2C, USB, and SWD.
 
 ZIF socket connections:
 
@@ -67,4 +67,4 @@ GAL programming pinouts:
     13                    sdin       16  vil
     14                    stb-       15  sdou
 
-Note: pin 1 is always in the top left, regardless of chip pin count.
+Note: pin 1 is always in the top left, regardless of the chip's pin count.

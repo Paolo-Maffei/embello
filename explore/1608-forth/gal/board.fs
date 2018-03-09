@@ -29,7 +29,7 @@ include ../flib/any/i2c-bb.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
 include ../flib/stm32f1/adc.fs
-include ../flib/stm32f1/rtc.fs
+include ../flib/stm32f1/dac.fs
 
 : hello ( -- ) flash-kb . ." KB <gal> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
