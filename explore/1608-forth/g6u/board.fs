@@ -25,13 +25,15 @@ include ../flib/stm32f1/clock.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins64.fs
 include ../flib/stm32f1/spi.fs
-include ../flib/any/i2c-bb.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
 include ../flib/stm32f1/adc.fs
 include ../flib/stm32f1/rtc.fs
 
-0 constant OLED.LARGE  \ display size: 0 = 128x32, 1 = 128x64 (default)
+10 constant I2C.DELAY
+include ../flib/any/i2c-bb.fs
+
+1 constant OLED.LARGE  \ display size: 0 = 128x32, 1 = 128x64 (default)
 
 : hello ( -- ) flash-kb . ." KB <g6u> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
