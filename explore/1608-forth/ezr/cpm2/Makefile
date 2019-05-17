@@ -3,7 +3,7 @@ min = -b $s/RLOAD.COM -b $s/SLOAD.COM -b $s/BDOS22.COM -b $s/MINBIOS.COM
 max = -b $s/RLOAD.COM -b $s/SLOAD.COM -b $s/BDOS22.COM -b $s/MAXBIOS.COM
 com = HEXSAVE.COM GETFLASH.COM PUTFLASH.COM XMODEM.COM MAPDRIVE.COM
 
-all: disk disk1 disk2
+all: disk disk1 disk2 disk3
 
 disk:
 	@rm -f disk.img
@@ -27,3 +27,12 @@ disk2:
 	@cpmcp -f memotech-type50 -t disk2.img XMODEM.CFG 0:
 	@ go run bin2fs.go disk2.img disk2.fs
 	@cpmls -f memotech-type50 -l disk2.img
+
+disk3:
+	@rm -f disk3.img
+	@mkfs.cpm -f memotech-type50 $(min) disk3.img
+	@for i in $(com) "utils/*"; do \
+	    cpmcp -f memotech-type50 disk3.img $s/$$i 0: ; done
+	@cpmcp -f memotech-type50 -t disk3.img XMODEM.CFG 0:
+	@ go run bin2fs.go disk3.img disk3.fs
+	@cpmls -f memotech-type50 -l disk3.img
